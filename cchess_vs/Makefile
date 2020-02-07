@@ -1,19 +1,19 @@
+# 参考《C语言核心技术》第19章
 #vpath %.h src/head src/json
 #vpath %.cpp src
 #vpath %.o obj
-# 参考《C语言核心技术》第19章
 
 CC = g++
 CFLAGS = -Wall -std=c++11  -fexec-charset=gbk  -iquote # -g 
 #LDFLAGS = -L/C/msys32/mingw32/lib -lpcre16 lib/pdcurses.a
 P = ./
-PO = $(P)obj/
-OBJS = $(PO)jsoncpp.o $(PO)Tools.o $(PO)Piece.o $(PO)Seat.o $(PO)Board.o $(PO)ChessManual.o $(PO)main.o
+PO = obj/
+OBJS = $(PO)jsoncpp.obj $(PO)Tools.obj $(PO)Piece.obj $(PO)Seat.obj $(PO)Board.obj $(PO)ChessManual.obj $(PO)main.obj
 
 a.exe: $(OBJS)
 	$(CC) -Wall -o $@ $^ $(LDFLAGS) 
 	
-$(OBJS): $(PO)%.o : $(P)%.cpp
+$(OBJS): $(PO)%.obj : $(P)%.cpp
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(OBJS): $(P)*.h

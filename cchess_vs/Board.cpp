@@ -80,31 +80,6 @@ SSeat_pair Board::getSeatPair(const wstring& str, RecFormat fmt) const
                   PieceManager::getColFromICCSChar(str.at(2))));
 }
 
-template <typename From_T1, typename From_T2>
-const RowCol_pair_vector Board::getCanMoveRowCols(From_T1 arg1, From_T2 arg2) const
-{
-    return SeatManager::getRowCols(__getCanMoveSeats(__getSeat(arg1, arg2)));
-}
-template const RowCol_pair_vector Board::getCanMoveRowCols(int arg1, int arg2) const;
-template const RowCol_pair_vector Board::getCanMoveRowCols(const wstring& arg1, RecFormat arg2) const;
-
-const RowCol_pair_vector Board::getLiveRowCols(PieceColor color) const
-{
-    return SeatManager::getRowCols(seats_->getLiveSeats(color));
-}
-
-void Board::setPieces(const wstring& pieceChars)
-{
-    seats_->setPieces(pieces_->getBoardPieces(pieceChars));
-    __setBottomSide();
-}
-
-void Board::changeSide(const ChangeType ct)
-{
-    seats_->changeSide(ct, pieces_);
-    __setBottomSide();
-}
-
 //(fseat, tseat)->中文纵线着法
 const wstring Board::getZhStr(SSeat_pair seat_pair) const
 {
@@ -134,6 +109,31 @@ const wstring Board::getZhStr(SSeat_pair seat_pair) const
     //assert(__getSeatPairFromZhStr(wos.str()) == seat_pair);
 
     return wos.str();
+}
+
+template <typename From_T1, typename From_T2>
+const RowCol_pair_vector Board::getCanMoveRowCols(From_T1 arg1, From_T2 arg2) const
+{
+    return SeatManager::getRowCols(__getCanMoveSeats(__getSeat(arg1, arg2)));
+}
+template const RowCol_pair_vector Board::getCanMoveRowCols(int arg1, int arg2) const;
+template const RowCol_pair_vector Board::getCanMoveRowCols(const wstring& arg1, RecFormat arg2) const;
+
+const RowCol_pair_vector Board::getLiveRowCols(PieceColor color) const
+{
+    return SeatManager::getRowCols(seats_->getLiveSeats(color));
+}
+
+void Board::setPieces(const wstring& pieceChars)
+{
+    seats_->setBoardPieces(pieces_->getBoardPieces(pieceChars));
+    __setBottomSide();
+}
+
+void Board::changeSide(const ChangeType ct)
+{
+    seats_->changeSide(ct, pieces_);
+    __setBottomSide();
 }
 
 const wstring Board::getPieceChars() const
@@ -391,7 +391,7 @@ const wstring testBoard()
         };
         __getCanMoveSeats();
         //*/
-        /*
+        //*
         for (const auto chg : {
                  ChangeType::EXCHANGE, ChangeType::ROTATE, ChangeType::SYMMETRY }) { //
             board.changeSide(chg);

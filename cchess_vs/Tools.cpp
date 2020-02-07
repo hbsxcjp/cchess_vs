@@ -60,7 +60,7 @@ wstring readFile(const string& fileName)
     return wstr;
 }
 
-void writeFile(const wstring& fileName, const wstring& wstr)
+void writeFile(const string& fileName, const wstring& wstr)
 {
     wofstream wofs(fileName);
     if (wofs)

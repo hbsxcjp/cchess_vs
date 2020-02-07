@@ -21,10 +21,11 @@ int main(int argc, char const* argv[])
 
         //* 
         std::wcout << testBoard();
-        Tools::writeFile(L"board.txt", testBoard());
+        string fname = "board.txt";
+        //Tools::writeFile(fname, testBoard());
         //std::wcout << testChessmanual();
         //*/
-        //*
+        /*
         if (argc == 7)
             testTransDir(std::stoi(argv[1]), std::stoi(argv[2]),
                 std::stoi(argv[3]), std::stoi(argv[4]), std::stoi(argv[5]), std::stoi(argv[6]));

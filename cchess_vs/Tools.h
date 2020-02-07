@@ -22,7 +22,7 @@ const std::wstring getWString(std::wistream& wis);
 
 std::wstring readFile(const std::string& fileName);
 
-void writeFile(const std::wstring& fileName, const std::wstring& ws);
+void writeFile(const std::string& fileName, const std::wstring& ws);
  
 void getFiles(const std::string& path, std::vector<std::string>& files);
 

@@ -15,9 +15,9 @@ namespace ChessManualSpace {
 static const wchar_t FENKey[] = L"FEN";
 
 /* ===== ChessManual::Move start. ===== */
-int ChessManual::Move::frowcol() const { return seat_pair_.first->rowcol(); }
+inline int ChessManual::Move::frowcol() const { return seat_pair_.first->rowcol(); }
 
-int ChessManual::Move::trowcol() const { return seat_pair_.second->rowcol(); }
+inline int ChessManual::Move::trowcol() const { return seat_pair_.second->rowcol(); }
 
 const wstring ChessManual::Move::iccs() const
 {

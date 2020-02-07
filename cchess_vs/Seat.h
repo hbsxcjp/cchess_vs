@@ -32,7 +32,7 @@ private:
 class Seats {
 public:
     Seats();
-     
+
     const SSeat& getSeat(int row, int col) const;
     const SSeat& getSeat(int rowcol) const;
     const SSeat& getSeat(RowCol_pair rowcol_pair) const;
@@ -40,7 +40,7 @@ public:
     const SSeat& getKingSeat(bool isBottom) const;
 
     // 棋子可放置的位置
-    SSeat_vector putSeats(bool isBottom, const SPiece& piece) const;
+    SSeat_vector getPutSeats(bool isBottom, const SPiece& piece) const;
     // 某位置棋子可移动的位置（未排除被将军的情况）
     SSeat_vector getMoveSeats(bool isBottom, const SSeat& fseat) const;
     // 取得棋盘上活的棋子
@@ -49,7 +49,7 @@ public:
     // '多兵排序'
     SSeat_vector getSortPawnLiveSeats(bool isBottom, PieceColor color, wchar_t name) const;
 
-    void setPieces(const vector<SPiece>& boardPieces);
+    void setBoardPieces(const vector<SPiece>& boardPieces);
     void changeSide(const ChangeType ct, const shared_ptr<PieceSpace::Pieces>& pieces);
     const wstring getPieceChars() const;
     const wstring toString() const;
@@ -71,9 +71,8 @@ private:
     SSeat_vector getCannonMoveSeats(const SSeat& fseat) const;
     SSeat_vector getPawnMoveSeats(bool isBottom, const SSeat& fseat) const;
 
-    SSeat_vector __getSeats(const RowCol_pair_vector& rowcols) const;
-    // 排除同颜色棋子
-    SSeat_vector __getMoveSeats(const RowCol_pair_vector& rowcols, const SSeat& fseat) const;
+    // 排除同颜色棋子，fseat为空则无需排除
+    SSeat_vector __getMoveSeats(const RowCol_pair_vector& rowcols, const SSeat& fseat = nullptr) const;
 
     const RowCol_pair_vector __getNonObs_MoveRowcols(bool isBottom, const SSeat& fseat,
         const PRowCol_pair_vector getObs_MoveRowcols(bool, int, int)) const;
@@ -118,4 +117,3 @@ const wstring getRowColsStr(const RowCol_pair_vector& rowcols);
 }
 
 #endif
- 

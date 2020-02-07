@@ -43,7 +43,7 @@ inline const SSeat& Seats::getSeat(int row, int col) const
 {
     return allSeats_.at(SeatManager::getIndex_rc(row, col));
 }
- 
+
 inline const SSeat& Seats::getSeat(int rowcol) const
 {
     return allSeats_.at(SeatManager::getIndex_rc(rowcol));
@@ -65,7 +65,7 @@ const SSeat& Seats::getKingSeat(bool isBottom) const
     throw runtime_error("将（帅）不在棋盘上面!");
 }
 
-SSeat_vector Seats::putSeats(bool isBottom, const SPiece& piece) const
+SSeat_vector Seats::getPutSeats(bool isBottom, const SPiece& piece) const
 {
     switch (piece->kind()) {
     case PieceKind::KING:
@@ -109,15 +109,15 @@ SSeat_vector Seats::getMoveSeats(bool isBottom, const SSeat& fseat) const
 SSeat_vector Seats::getLiveSeats(PieceColor color, wchar_t name, int col, bool getStronge) const
 {
     SSeat_vector seats{};
-    copy_if(allSeats_.begin(), allSeats_.end(), back_inserter(seats),
-        [&](const SSeat& seat) {
-            auto& piece = seat->piece();
-            return (piece
-                && color == piece->color()
-                && (name == BLANKNAME || name == piece->name())
-                && (col == BLANKCOL || col == seat->col())
-                && (!getStronge || PieceManager::isStronge(piece->name())));
-        });
+    for (auto& seat : allSeats_) {
+        auto& piece = seat->piece();
+        if (piece
+            && color == piece->color()
+            && (name == BLANKNAME || name == piece->name())
+            && (col == BLANKCOL || col == seat->col())
+            && (!getStronge || PieceManager::isStronge(piece->name())))
+            seats.push_back(seat);
+    }
     return seats;
 }
 
@@ -142,7 +142,7 @@ SSeat_vector Seats::getSortPawnLiveSeats(bool isBottom,
     return seats;
 }
 
-void Seats::setPieces(const vector<SPiece>& boardPieces)
+void Seats::setBoardPieces(const vector<SPiece>& boardPieces)
 {
     int index{ 0 };
     for_each(allSeats_.begin(), allSeats_.end(),
@@ -159,7 +159,7 @@ void Seats::changeSide(const ChangeType ct, const shared_ptr<Pieces>& pieces)
                     ? pieces->getOtherPiece(seat->piece())
                     : getSeat(changeRowcol(seat->rowcol()))->piece());
         });
-    setPieces(boardPieces);
+    setBoardPieces(boardPieces);
 }
 
 const wstring Seats::getPieceChars() const
@@ -189,22 +189,22 @@ vector<SSeat> Seats::getAllSeats() const
 
 SSeat_vector Seats::getKingSeats(bool isBottom) const
 {
-    return __getSeats(SeatManager::getKingRowcols(isBottom));
+    return __getMoveSeats(SeatManager::getKingRowcols(isBottom));
 }
 
 SSeat_vector Seats::getAdvisorSeats(bool isBottom) const
 {
-    return __getSeats(SeatManager::getAdvisorRowcols(isBottom));
+    return __getMoveSeats(SeatManager::getAdvisorRowcols(isBottom));
 }
 
 SSeat_vector Seats::getBishopSeats(bool isBottom) const
 {
-    return __getSeats(SeatManager::getBishopRowcols(isBottom));
+    return __getMoveSeats(SeatManager::getBishopRowcols(isBottom));
 }
 
 SSeat_vector Seats::getPawnSeats(bool isBottom) const
 {
-    return __getSeats(SeatManager::getPawnRowcols(isBottom));
+    return __getMoveSeats(SeatManager::getPawnRowcols(isBottom));
 }
 
 vector<SSeat> Seats::getKingMoveSeats(bool isBottom, const SSeat& fseat) const
@@ -242,26 +242,15 @@ vector<SSeat> Seats::getPawnMoveSeats(bool isBottom, const SSeat& fseat) const
     return __getMoveSeats(SeatManager::getPawnMoveRowcols(isBottom, fseat->row(), fseat->col()), fseat);
 }
 
-vector<SSeat> Seats::__getSeats(const RowCol_pair_vector& rowcol_pairs) const
-{
-    vector<SSeat> seats{};
-    for_each(rowcol_pairs.begin(), rowcol_pairs.end(),
-        [&](const pair<int, int>& rowcol_pair) {
-            seats.push_back(getSeat(rowcol_pair));
-        });
-    return seats;
-}
-
 vector<SSeat> Seats::__getMoveSeats(const RowCol_pair_vector& rowcol_pairs, const SSeat& fseat) const
 {
-    vector<SSeat> moveSeats{};
-    for_each(rowcol_pairs.begin(), rowcol_pairs.end(),
-        [&](const pair<int, int>& rowcol_pair) {
-            auto& seat = getSeat(rowcol_pair);
-            if (!fseat->isSameColor(seat)) // 非同一颜色
-                moveSeats.push_back(seat);
-        });
-    return moveSeats;
+    vector<SSeat> seats{};
+    for (auto& rowcol_pair : rowcol_pairs) {
+        auto& seat = getSeat(rowcol_pair);
+        if (!fseat || !fseat->isSameColor(seat)) // fseat为空 或 非同一颜色
+            seats.push_back(seat);
+    }
+    return seats;
 }
 
 const RowCol_pair_vector
@@ -504,7 +493,7 @@ const wstring getSeatsStr(const vector<SSeat>& seats)
 {
     wostringstream wos{};
     wos << seats.size() << L"个: ";
-    for (auto& seat : seats) 
+    for (auto& seat : seats)
         wos << seat->toString() << L' ';
     return wos.str();
 }

@@ -19,6 +19,7 @@ public:
     SSeat_pair getSeatPair(RowCol_pair fprow_pair, RowCol_pair tprow_pair) const;
     SSeat_pair getSeatPair(PRowCol_pair pprow_pair) const;
     SSeat_pair getSeatPair(const wstring& str, RecFormat fmt) const;
+    const wstring getZhStr(SSeat_pair seat_pair) const;
 
     template <typename From_T1, typename From_T2>
     const RowCol_pair_vector getCanMoveRowCols(From_T1 arg1, From_T2 arg2) const;
@@ -29,7 +30,6 @@ public:
     void setPieces(const wstring& pieceChars);
     void changeSide(const ChangeType ct);
  
-    const wstring getZhStr(SSeat_pair seat_pair) const;
     const wstring getPieceChars() const;
     const wstring toString() const;
 
