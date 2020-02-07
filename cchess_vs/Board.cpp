@@ -27,6 +27,8 @@ bool Board::isKilled(PieceColor color) const
         for (int row = lrow + 1; row < urow; ++row) {
             if (!seats_->getSeat(row, fcol)->piece()) // 空棋子则继续循环
                 continue;
+            else
+                break;
             return true; // 全部是空棋子，则将帅对面
         }
     }

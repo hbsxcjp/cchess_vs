@@ -1140,7 +1140,7 @@ const wstring board_test()
                     << getRowColsStr(rowcols) << L'\n';
                 for (auto& rowcol : rowcols)
                     wss << L"From:" << rowcol.first << rowcol.second << L" CanMovtTo: "
-                        //<< getRowColsStr(board.getCanMoveRowCols(rowcol.first, rowcol.second))
+                        << getRowColsStr(board.getCanMoveRowCols(rowcol.first, rowcol.second))
                         << L'\n';
                 wss << L'\n';
             }

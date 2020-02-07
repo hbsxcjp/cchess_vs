@@ -16,9 +16,9 @@ bool Seat::isSameColor(const SSeat& seat) const
     return piece && piece->color() == piece_->color();
 }
 
-const SPiece& Seat::movTo(SSeat& tseat, const SPiece& eatPiece)
+const SPiece Seat::movTo(SSeat& tseat, const SPiece& eatPiece)
 {
-    auto& tpiece = tseat->piece();
+    auto tpiece = tseat->piece();
     tseat->setPiece(this->piece());
     setPiece(eatPiece);
     return tpiece;

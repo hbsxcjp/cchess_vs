@@ -78,7 +78,7 @@ enum class RecFormat {
 
 typedef shared_ptr<PieceSpace::Piece> SPiece;
 typedef shared_ptr<SeatSpace::Seat> SSeat;
-typedef const pair<const SSeat&, const SSeat&> SSeat_pair; // 可以使用常量引用?
+typedef pair<SSeat, SSeat> SSeat_pair; // 可以使用常量引用?
 typedef vector<SSeat> SSeat_vector; // 容器装的是对象拷贝
 
 typedef shared_ptr<BoardSpace::Board> SBoard;

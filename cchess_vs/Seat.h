@@ -19,7 +19,7 @@ public:
 
     bool isSameColor(const SSeat& seat) const;
     void setPiece(const SPiece& piece = nullptr) { piece_ = piece; }
-    const SPiece& movTo(SSeat& tseat, const SPiece& eatPiece = nullptr);
+    const SPiece movTo(SSeat& tseat, const SPiece& eatPiece = nullptr);
 
     const wstring toString() const;
 
