@@ -1,4 +1,4 @@
-//#pragma once
+ï»¿//#pragma once
 #ifndef PIECE_H
 #define PIECE_H
 
@@ -6,7 +6,7 @@
 
 namespace PieceSpace {
 
-// Æå×ÓÀà
+// æ£‹å­ç±»
 class Piece {
 
 public:
@@ -28,7 +28,7 @@ private:
     const PieceKind kind_;
 };
 
-// Ò»¸±Æå×ÓÀà
+// ä¸€å‰¯æ£‹å­ç±»
 class Pieces {
 
 public:
@@ -43,7 +43,7 @@ private:
     vector<SPiece> allPieces_;
 };
 
-// Æå×Ó¹ÜÀíÀà
+// æ£‹å­ç®¡ç†ç±»
 class PieceManager {
 
 public:
@@ -62,13 +62,13 @@ public:
         if (piece.color() == PieceColor::BLACK) {
             switch (piece.kind()) {
             case PieceKind::ROOK:
-                name = L'Ü‡';
+                name = L'è»Š';
                 break;
             case PieceKind::KNIGHT:
-                name = L'ñR';
+                name = L'é¦¬';
                 break;
             case PieceKind::CANNON:
-                name = L'³h';
+                name = L'ç ²';
                 break;
             default:
                 break;
@@ -156,6 +156,7 @@ public:
         return nameChars_.find(name) != wstring::npos;
     };
 
+    static const wstring getPiecesChars() { return piecesChar_; }
     static const wstring getZhChars()
     {
         return (preChars_ + nameChars_ + movChars_
@@ -172,7 +173,7 @@ public:
     static wchar_t getColICCSChar(int col) { return ICCSChars_[col]; }
     static wchar_t nullChar() { return nullChar_; };
 
-    // ¿í×Ö·ûÓëÊı×ÖĞòºÅµÄ×ª»»
+    // å®½å­—ç¬¦ä¸æ•°å­—åºå·çš„è½¬æ¢
     static int getMovNum(bool isBottom, wchar_t movChar)
     {
         return (-1 + movChars_.find(movChar)) * (isBottom ? 1 : -1);
@@ -209,11 +210,12 @@ public:
 private:
     static const wstring __getPreChars(int length)
     {
-        return (length == 2 ? (wstring{ preChars_ }).erase(1, 1) //L"Ç°ºó"
-                            : (length == 3 ? preChars_ //L"Ç°ÖĞºó"
-                                           : numChars_.at(PieceColor::RED).substr(0, 5))); //L"Ò»¶şÈıËÄÎå");
+        return (length == 2 ? (wstring{ preChars_ }).erase(1, 1) //L"å‰å"
+                            : (length == 3 ? preChars_ //L"å‰ä¸­å"
+                                           : numChars_.at(PieceColor::RED).substr(0, 5))); //L"ä¸€äºŒä¸‰å››äº”");
     }
 
+    static const wstring piecesChar_;
     static const wstring chChars_;
     static const wstring preChars_;
     static const wstring nameChars_;

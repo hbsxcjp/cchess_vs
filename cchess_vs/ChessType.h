@@ -1,4 +1,4 @@
-//#pragma once
+ï»¿//#pragma once
 #ifndef CHESSTYPE_H
 #define CHESSTYPE_H
 
@@ -77,9 +77,15 @@ enum class RecFormat {
 };
 
 typedef shared_ptr<PieceSpace::Piece> SPiece;
+
 typedef shared_ptr<SeatSpace::Seat> SSeat;
-typedef pair<SSeat, SSeat> SSeat_pair; // ¿ÉÒÔÊ¹ÓÃ³£Á¿ÒıÓÃ?
-typedef vector<SSeat> SSeat_vector; // ÈİÆ÷×°µÄÊÇ¶ÔÏó¿½±´
+typedef pair<const SSeat&, const SSeat&> SSeat_pair;
+typedef vector<SSeat> SSeat_vector;
+
+typedef pair<int, int> RowCol_pair;
+typedef pair<pair<int, int>, pair<int, int>> PRowCol_pair;
+typedef vector<RowCol_pair> RowCol_pair_vector;
+typedef vector<PRowCol_pair> PRowCol_pair_vector;
 
 typedef shared_ptr<BoardSpace::Board> SBoard;
 typedef shared_ptr<ChessManualSpace::ChessManual> SChessManual;

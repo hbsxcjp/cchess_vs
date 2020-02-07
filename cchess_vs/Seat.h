@@ -1,4 +1,4 @@
-//#pragma once
+ï»¿//#pragma once
 #ifndef SEAT_H
 #define SEAT_H
 
@@ -6,7 +6,7 @@
 
 namespace SeatSpace {
 
-// Æå×ÓÎ»ÖÃÀà
+// æ£‹å­ä½ç½®ç±»
 class Seat : public enable_shared_from_this<Seat> {
 
 public:
@@ -28,36 +28,25 @@ private:
     SPiece piece_{};
 };
 
-// ÆåÅÌÎ»ÖÃÀà
+// æ£‹ç›˜ä½ç½®ç±»
 class Seats {
 public:
     Seats();
 
     const SSeat& getSeat(int row, int col) const;
     const SSeat& getSeat(int rowcol) const;
-    const SSeat& getSeat(const pair<int, int>& rowcol_pair) const
-    {
-        return getSeat(rowcol_pair.first, rowcol_pair.second);
-    }
+    const SSeat& getSeat(RowCol_pair rowcol_pair) const;
+
     const SSeat& getKingSeat(bool isBottom) const;
 
-    SSeat_pair getSeatPair(int frow, int fcol, int trow, int tcol) const
-    {
-        return make_pair(getSeat(frow, fcol), getSeat(trow, tcol));
-    }
-    SSeat_pair getSeatPair(int frowcol, int trowcol) const
-    {
-        return make_pair(getSeat(frowcol), getSeat(trowcol));
-    }
-
-    // Æå×Ó¿É·ÅÖÃµÄÎ»ÖÃ
+    // æ£‹å­å¯æ”¾ç½®çš„ä½ç½®
     SSeat_vector putSeats(bool isBottom, const SPiece& piece) const;
-    // Ä³Î»ÖÃÆå×Ó¿ÉÒÆ¶¯µÄÎ»ÖÃ£¨Î´ÅÅ³ı±»½«¾üµÄÇé¿ö£©
+    // æŸä½ç½®æ£‹å­å¯ç§»åŠ¨çš„ä½ç½®ï¼ˆæœªæ’é™¤è¢«å°†å†›çš„æƒ…å†µï¼‰
     SSeat_vector getMoveSeats(bool isBottom, const SSeat& fseat) const;
-    // È¡µÃÆåÅÌÉÏ»îµÄÆå×Ó
+    // å–å¾—æ£‹ç›˜ä¸Šæ´»çš„æ£‹å­
     SSeat_vector getLiveSeats(PieceColor color, wchar_t name = BLANKNAME,
         int col = BLANKCOL, bool getStronge = false) const;
-    // '¶à±øÅÅĞò'
+    // 'å¤šå…µæ’åº'
     SSeat_vector getSortPawnLiveSeats(bool isBottom, PieceColor color, wchar_t name) const;
 
     void setPieces(const vector<SPiece>& boardPieces);
@@ -82,17 +71,17 @@ private:
     SSeat_vector getCannonMoveSeats(const SSeat& fseat) const;
     SSeat_vector getPawnMoveSeats(bool isBottom, const SSeat& fseat) const;
 
-    SSeat_vector __getSeats(const vector<pair<int, int>>& rowcols) const;
-    // ÅÅ³ıÍ¬ÑÕÉ«Æå×Ó
-    SSeat_vector __getMoveSeats(const vector<pair<int, int>>& rowcols, const SSeat& fseat) const;
+    SSeat_vector __getSeats(const RowCol_pair_vector& rowcols) const;
+    // æ’é™¤åŒé¢œè‰²æ£‹å­
+    SSeat_vector __getMoveSeats(const RowCol_pair_vector& rowcols, const SSeat& fseat) const;
 
-    const vector<pair<int, int>> __getNonObs_MoveRowcols(bool isBottom, const SSeat& fseat,
-        const vector<pair<pair<int, int>, pair<int, int>>> getObs_MoveRowcols(bool, int, int)) const;
-    const vector<pair<int, int>> __getRook_MoveRowcols(const SSeat& fseat) const;
-    const vector<pair<int, int>> __getCannon_MoveRowcols(const SSeat& fseat) const;
+    const RowCol_pair_vector __getNonObs_MoveRowcols(bool isBottom, const SSeat& fseat,
+        const PRowCol_pair_vector getObs_MoveRowcols(bool, int, int)) const;
+    const RowCol_pair_vector __getRook_MoveRowcols(const SSeat& fseat) const;
+    const RowCol_pair_vector __getCannon_MoveRowcols(const SSeat& fseat) const;
 };
 
-// ÆåÅÌÎ»ÖÃ¹ÜÀíÀà
+// æ£‹ç›˜ä½ç½®ç®¡ç†ç±»
 class SeatManager {
 public:
     static bool isBottom(int row) { return row < RowLowUpIndex_; };
@@ -103,20 +92,20 @@ public:
 
     static void movBack(SSeat& fseat, SSeat& tseat, const SPiece& eatPiece);
 
-    static const vector<pair<int, int>> getRowCols(const SSeat_vector& seats);
+    static const RowCol_pair_vector getRowCols(const SSeat_vector& seats);
 
-    static const vector<pair<int, int>> getAllRowcols();
-    static const vector<pair<int, int>> getKingRowcols(bool isBottom);
-    static const vector<pair<int, int>> getAdvisorRowcols(bool isBottom);
-    static const vector<pair<int, int>> getBishopRowcols(bool isBottom);
-    static const vector<pair<int, int>> getPawnRowcols(bool isBottom);
+    static const RowCol_pair_vector getAllRowcols();
+    static const RowCol_pair_vector getKingRowcols(bool isBottom);
+    static const RowCol_pair_vector getAdvisorRowcols(bool isBottom);
+    static const RowCol_pair_vector getBishopRowcols(bool isBottom);
+    static const RowCol_pair_vector getPawnRowcols(bool isBottom);
 
-    static const vector<pair<int, int>> getKingMoveRowcols(bool isBottom, int frow, int fcol);
-    static const vector<pair<int, int>> getAdvisorMoveRowcols(bool isBottom, int frow, int fcol);
-    static const vector<pair<pair<int, int>, pair<int, int>>> getBishopObs_MoveRowcols(bool isBottom, int frow, int fcol);
-    static const vector<pair<pair<int, int>, pair<int, int>>> getKnightObs_MoveRowcols(bool isBottom, int frow, int fcol);
-    static const vector<vector<pair<int, int>>> getRookCannonMoveRowcol_Lines(int frow, int fcol);
-    static const vector<pair<int, int>> getPawnMoveRowcols(bool isBottom, int frow, int fcol);
+    static const RowCol_pair_vector getKingMoveRowcols(bool isBottom, int frow, int fcol);
+    static const RowCol_pair_vector getAdvisorMoveRowcols(bool isBottom, int frow, int fcol);
+    static const PRowCol_pair_vector getBishopObs_MoveRowcols(bool isBottom, int frow, int fcol);
+    static const PRowCol_pair_vector getKnightObs_MoveRowcols(bool isBottom, int frow, int fcol);
+    static const vector<RowCol_pair_vector> getRookCannonMoveRowcol_Lines(int frow, int fcol);
+    static const RowCol_pair_vector getPawnMoveRowcols(bool isBottom, int frow, int fcol);
 
 private:
     static constexpr int RowLowIndex_{ 0 }, RowLowMidIndex_{ 2 }, RowLowUpIndex_{ 4 },
@@ -125,7 +114,7 @@ private:
 };
 
 const wstring getSeatsStr(const SSeat_vector& seats);
-const wstring getRowColsStr(const vector<pair<int, int>>& rowcols);
+const wstring getRowColsStr(const RowCol_pair_vector& rowcols);
 }
 
 #endif

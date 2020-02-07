@@ -1,4 +1,4 @@
-#include "Piece.h"
+ï»¿#include "Piece.h"
 #include "Seat.h"
 
 namespace PieceSpace {
@@ -14,18 +14,17 @@ Piece::Piece(wchar_t ch)
 
 const wstring Piece::toString() const
 {
-    wstringstream wss{};
-    wss << (color() == PieceColor::RED ? L'+' : L'*') << static_cast<int>(kind())
+    wostringstream wos{};
+    wos << (color() == PieceColor::RED ? L'+' : L'*') << static_cast<int>(kind())
         << ch() << name() << PieceManager::getPrintName(*this);
-    return wss.str();
+    return wos.str();
 }
 /* ===== Piece end. ===== */
 
 /* ===== Pieces start. ===== */
 Pieces::Pieces()
 {
-    const wstring chars = { L"KAABBNNRRCCPPPPPkaabbnnrrccppppp" };
-    for (auto& ch : chars)
+    for (auto& ch : PieceManager::getPiecesChars())
         allPieces_.push_back(make_shared<Piece>(ch));
 }
 
@@ -60,23 +59,22 @@ const vector<SPiece> Pieces::getBoardPieces(const wstring& pieceChars) const
 
 const wstring Pieces::toString() const
 {
-    wstringstream wss{};
-    for_each(allPieces_.begin(), allPieces_.end(),
-        [&](const SPiece& piece) {
-            wss << piece->toString() << L' ';
-        });
-    return wss.str();
+    wostringstream wos{};
+    for (auto& piece : allPieces_)
+        wos << piece->toString() << L' ';
+    return wos.str();
 }
 /* ===== Pieces end. ===== */
 
 /* ===== PieceManager start. ===== */
+const wstring PieceManager::piecesChar_{ L"KAABBNNRRCCPPPPPkaabbnnrrccppppp" };
 const wstring PieceManager::chChars_{ L"KABNRCPkabnrcp" };
-const wstring PieceManager::preChars_{ L"Ç°ÖĞºó" };
-const wstring PieceManager::nameChars_{ L"Ë§½«ÊËÊ¿ÏàÏóÂí³µÅÚ±ø×ä" };
-const wstring PieceManager::movChars_{ L"ÍËÆ½½ø" };
+const wstring PieceManager::preChars_{ L"å‰ä¸­å" };
+const wstring PieceManager::nameChars_{ L"å¸…å°†ä»•å£«ç›¸è±¡é©¬è½¦ç‚®å…µå’" };
+const wstring PieceManager::movChars_{ L"é€€å¹³è¿›" };
 const map<PieceColor, wstring> PieceManager::numChars_{
-    { PieceColor::RED, L"Ò»¶şÈıËÄÎåÁùÆß°Ë¾Å" },
-    { PieceColor::BLACK, L"£±£²£³£´£µ£¶£·£¸£¹" }
+    { PieceColor::RED, L"ä¸€äºŒä¸‰å››äº”å…­ä¸ƒå…«ä¹" },
+    { PieceColor::BLACK, L"ï¼‘ï¼’ï¼“ï¼”ï¼•ï¼–ï¼—ï¼˜ï¼™" }
 };
 const wstring PieceManager::ICCSChars_{ L"abcdefghi" };
 const wstring PieceManager::FirstFEN_{ L"rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR" };

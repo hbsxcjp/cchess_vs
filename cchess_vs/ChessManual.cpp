@@ -1,29 +1,30 @@
-#include "ChessManual.h"
+ï»¿#include "ChessManual.h"
 #include "Board.h"
 #include "Piece.h"
 #include "Seat.h"
 #include "Tools.h"
 #include "json.h"
 
-extern template const vector<pair<int, int>> Board::getCanMoveRowCols(int arg1, int arg2) const;
-extern template const vector<pair<int, int>> Board::getCanMoveRowCols(const wstring& arg1, RecFormat arg2) const;
+extern template const RowCol_pair_vector
+Board::getCanMoveRowCols(int arg1, int arg2) const;
+extern template const RowCol_pair_vector
+Board::getCanMoveRowCols(const wstring& arg1, RecFormat arg2) const;
 
 namespace ChessManualSpace {
 
 static const wchar_t FENKey[] = L"FEN";
 
 /* ===== ChessManual::Move start. ===== */
-
 int ChessManual::Move::frowcol() const { return seat_pair_.first->rowcol(); }
 
 int ChessManual::Move::trowcol() const { return seat_pair_.second->rowcol(); }
 
 const wstring ChessManual::Move::iccs() const
 {
-    wstringstream wss{};
-    wss << PieceManager::getColICCSChar(seat_pair_.first->col()) << seat_pair_.first->row()
+    wostringstream wos{};
+    wos << PieceManager::getColICCSChar(seat_pair_.first->col()) << seat_pair_.first->row()
         << PieceManager::getColICCSChar(seat_pair_.second->col()) << seat_pair_.second->row();
-    return wss.str();
+    return wos.str();
 }
 
 shared_ptr<ChessManual::Move>& ChessManual::Move::addNext()
@@ -44,26 +45,20 @@ shared_ptr<ChessManual::Move>& ChessManual::Move::addOther()
     return other_ = otherMove;
 }
 
-shared_ptr<ChessManual::Move>& ChessManual::Move::addNext(const SSeat_pair& seat_pair, const wstring& remark)
+shared_ptr<ChessManual::Move>& ChessManual::Move::addNext(const SSeat_pair& prowcol_pair, const wstring& remark)
 {
 
-    auto nextMove = make_shared<Move>();
-    nextMove->setNextNo(nextNo_ + 1);
-    nextMove->setOtherNo(otherNo_);
-    nextMove->setPrev(weak_ptr<Move>(shared_from_this()));
-    nextMove->setSeatPair(seat_pair);
+    auto nextMove = this->addNext();
+    nextMove->setSeatPair(prowcol_pair);
     nextMove->setRemark(remark);
     return next_ = nextMove;
 }
 
-shared_ptr<ChessManual::Move>& ChessManual::Move::addOther(const SSeat_pair& seat_pair, const wstring& remark)
+shared_ptr<ChessManual::Move>& ChessManual::Move::addOther(const SSeat_pair& prowcol_pair, const wstring& remark)
 {
 
-    auto otherMove = make_shared<Move>();
-    otherMove->setNextNo(nextNo_);
-    otherMove->setOtherNo(otherNo_ + 1);
-    otherMove->setPrev(weak_ptr<Move>(shared_from_this()));
-    otherMove->setSeatPair(seat_pair);
+    auto otherMove = this->addOther();
+    otherMove->setSeatPair(prowcol_pair);
     otherMove->setRemark(remark);
     return other_ = otherMove;
 }
@@ -92,19 +87,19 @@ void ChessManual::Move::undo()
 
 const wstring ChessManual::Move::toString() const
 {
-    wstringstream wss{};
-    wss << setw(2) << frowcol() << L'_' << setw(2) << trowcol()
+    wostringstream wos{};
+    wos << setw(2) << frowcol() << L'_' << setw(2) << trowcol()
         << L'-' << setw(4) << iccs() << L':' << setw(4) << zh()
         << L'@' << (eatPie_ ? eatPie_->name() : L'-') << L' ' << L'{' << remark() << L'}'
         << L" next:" << nextNo_ << L" other:" << otherNo_ << L" CC_Col:" << CC_ColNo_ << L'\n';
-    return wss.str();
+    return wos.str();
 }
 /* ===== ChessManual::Move end. ===== */
 
 /* ===== ChessManual start. ===== */
 ChessManual::ChessManual()
     : info_{ map<wstring, wstring>{} }
-    , board_{ make_shared<Board>() } // ¶¯Ì¬·ÖÅäÄÚ´æ£¬³õÊ¼»¯¶ÔÏó²¢Ö¸ÏòËü
+    , board_{ make_shared<Board>() } // åŠ¨æ€åˆ†é…å†…å­˜ï¼Œåˆå§‹åŒ–å¯¹è±¡å¹¶æŒ‡å‘å®ƒ
     , rootMove_{ make_shared<Move>() }
     , currentMove_{ make_shared<Move>() }
 {
@@ -202,7 +197,7 @@ void ChessManual::changeSide(ChangeType ct)
         //auto changeRowcol = mem_fn(ct == ChangeType::ROTATE ? &SeatManager::getRotate : &SeatManager::getSymmetry);
         function<void(const SMove&)>
             __resetMove = [&](const SMove& move) {
-                __setMoveFromRowcol(move, changeRowcol(move->frowcol()), // ¸Ä³ÉaddNextĞÎÊ½ºó£¬ĞèÒªÏÈÔİ´æÏÂÒ»¸ömove£¬´øÌáÈ¡rowcolÖ´ĞĞaddNextºóÔÙ¶ªÆú
+                __setMoveFromRowcol(move, changeRowcol(move->frowcol()), // æ”¹æˆaddNextå½¢å¼åï¼Œéœ€è¦å…ˆæš‚å­˜ä¸‹ä¸€ä¸ªmoveï¼Œå¸¦æå–rowcolæ‰§è¡ŒaddNextåå†ä¸¢å¼ƒ
                     changeRowcol(move->trowcol()), move->remark());
                 if (move->next())
                     __resetMove(move->next());
@@ -312,7 +307,7 @@ const wstring ChessManual::toString()
             if (currentMove_->other()) {
                 preMoves.push_back(currentMove_);
                 __printMoveBoard(true);
-                // ±ä×ÅÖ®Ç°×ÅÔÚ·µ»ØÊ±£¬Ó¦ÓèÖ´ĞĞ
+                // å˜ç€ä¹‹å‰ç€åœ¨è¿”å›æ—¶ï¼Œåº”äºˆæ‰§è¡Œ
                 if (!preMoves.empty()) {
                     preMoves.back()->done();
                     preMoves.pop_back();
@@ -331,21 +326,21 @@ const wstring ChessManual::toString()
 
 void ChessManual::__readXQF(istream& is)
 {
-    char Signature[3]{}, Version{}, headKeyMask{}, ProductId[4]{}, //ÎÄ¼ş±ê¼Ç'XQ'=$5158/°æ±¾/¼ÓÃÜÑÚÂë/ProductId[4], ²úÆ·(³§ÉÌµÄ²úÆ·ºÅ)
+    char Signature[3]{}, Version{}, headKeyMask{}, ProductId[4]{}, //æ–‡ä»¶æ ‡è®°'XQ'=$5158/ç‰ˆæœ¬/åŠ å¯†æ©ç /ProductId[4], äº§å“(å‚å•†çš„äº§å“å·)
         headKeyOrA{}, headKeyOrB{}, headKeyOrC{}, headKeyOrD{},
-        headKeysSum{}, headKeyXY{}, headKeyXYf{}, headKeyXYt{}, // ¼ÓÃÜµÄÔ¿³×ºÍ/Æå×Ó²¼¾ÖÎ»ÖÃÔ¿³×/ÆåÆ×ÆğµãÔ¿³×/ÆåÆ×ÖÕµãÔ¿³×
-        headQiziXY[PIECENUM]{}, // 32¸öÆå×ÓµÄÔ­Ê¼Î»ÖÃ
-        // ÓÃµ¥×Ö½Ú×ø±ê±íÊ¾, ½«×Ö½Ú±äÎªÊ®½øÖÆ, Ê®Î»ÊıÎªX(0-8)¸öÎ»ÊıÎªY(0-9),
-        // ÆåÅÌµÄ×óÏÂ½ÇÎªÔ­µã(0, 0). 32¸öÆå×ÓµÄÎ»ÖÃ´Ó1µ½32ÒÀ´ÎÎª:
-        // ºì: ³µÂíÏàÊ¿Ë§Ê¿ÏàÂí³µÅÚÅÚ±ø±ø±ø±ø±ø (Î»ÖÃ´ÓÓÒµ½×ó, ´ÓÏÂµ½ÉÏ)
-        // ºÚ: ³µÂíÏóÊ¿½«Ê¿ÏóÂí³µÅÚÅÚ×ä×ä×ä×ä×ä (Î»ÖÃ´ÓÓÒµ½×ó, ´ÓÏÂµ½ÉÏ)PlayStepNo[2],
+        headKeysSum{}, headKeyXY{}, headKeyXYf{}, headKeyXYt{}, // åŠ å¯†çš„é’¥åŒ™å’Œ/æ£‹å­å¸ƒå±€ä½ç½®é’¥åŒ™/æ£‹è°±èµ·ç‚¹é’¥åŒ™/æ£‹è°±ç»ˆç‚¹é’¥åŒ™
+        headQiziXY[PIECENUM]{}, // 32ä¸ªæ£‹å­çš„åŸå§‹ä½ç½®
+        // ç”¨å•å­—èŠ‚åæ ‡è¡¨ç¤º, å°†å­—èŠ‚å˜ä¸ºåè¿›åˆ¶, åä½æ•°ä¸ºX(0-8)ä¸ªä½æ•°ä¸ºY(0-9),
+        // æ£‹ç›˜çš„å·¦ä¸‹è§’ä¸ºåŸç‚¹(0, 0). 32ä¸ªæ£‹å­çš„ä½ç½®ä»1åˆ°32ä¾æ¬¡ä¸º:
+        // çº¢: è½¦é©¬ç›¸å£«å¸…å£«ç›¸é©¬è½¦ç‚®ç‚®å…µå…µå…µå…µå…µ (ä½ç½®ä»å³åˆ°å·¦, ä»ä¸‹åˆ°ä¸Š)
+        // é»‘: è½¦é©¬è±¡å£«å°†å£«è±¡é©¬è½¦ç‚®ç‚®å’å’å’å’å’ (ä½ç½®ä»å³åˆ°å·¦, ä»ä¸‹åˆ°ä¸Š)PlayStepNo[2],
         PlayStepNo[2]{},
         headWhoPlay{}, headPlayResult{}, PlayNodes[4]{}, PTreePos[4]{}, Reserved1[4]{},
-        // ¸ÃË­ÏÂ 0-ºìÏÈ, 1-ºÚÏÈ/×îÖÕ½á¹û 0-Î´Öª, 1-ºìÊ¤ 2-ºÚÊ¤, 3-ºÍÆå
-        headCodeA_H[16]{}, TitleA[65]{}, TitleB[65]{}, //¶Ô¾ÖÀàĞÍ(¿ª,ÖĞ,²ĞµÈ)
+        // è¯¥è°ä¸‹ 0-çº¢å…ˆ, 1-é»‘å…ˆ/æœ€ç»ˆç»“æœ 0-æœªçŸ¥, 1-çº¢èƒœ 2-é»‘èƒœ, 3-å’Œæ£‹
+        headCodeA_H[16]{}, TitleA[65]{}, TitleB[65]{}, //å¯¹å±€ç±»å‹(å¼€,ä¸­,æ®‹ç­‰)
         Event[65]{}, Date[17]{}, Site[17]{}, Red[17]{}, Black[17]{},
         Opening[65]{}, Redtime[17]{}, Blktime[17]{}, Reservedh[33]{},
-        RMKWriter[17]{}, Author[17]{}; //, Other[528]{}; // ÆåÆ×ÆÀÂÛÔ±/ÎÄ¼şµÄ×÷Õß
+        RMKWriter[17]{}, Author[17]{}; //, Other[528]{}; // æ£‹è°±è¯„è®ºå‘˜/æ–‡ä»¶çš„ä½œè€…
 
     is.read(Signature, 2).get(Version).get(headKeyMask).read(ProductId, 4) // = 8 bytes
         .get(headKeyOrA)
@@ -379,28 +374,28 @@ void ChessManual::__readXQF(istream& is)
         .read(Author, 16);
 
     assert(Signature[0] == 0x58 || Signature[1] == 0x51);
-    assert((headKeysSum + headKeyXY + headKeyXYf + headKeyXYt) % 256 == 0); // L" ¼ì²éÃÜÂëĞ£ÑéºÍ²»¶Ô£¬²»µÈÓÚ0¡£\n";
-    assert(Version <= 18); // L" ÕâÊÇÒ»¸ö¸ß°æ±¾µÄXQFÎÄ¼ş£¬ÄúĞèÒª¸ü¸ß°æ±¾µÄXQStudioÀ´¶ÁÈ¡Õâ¸öÎÄ¼ş¡£\n";
+    assert((headKeysSum + headKeyXY + headKeyXYf + headKeyXYt) % 256 == 0); // L" æ£€æŸ¥å¯†ç æ ¡éªŒå’Œä¸å¯¹ï¼Œä¸ç­‰äº0ã€‚\n";
+    assert(Version <= 18); // L" è¿™æ˜¯ä¸€ä¸ªé«˜ç‰ˆæœ¬çš„XQFæ–‡ä»¶ï¼Œæ‚¨éœ€è¦æ›´é«˜ç‰ˆæœ¬çš„XQStudioæ¥è¯»å–è¿™ä¸ªæ–‡ä»¶ã€‚\n";
 
     unsigned char KeyXY{}, KeyXYf{}, KeyXYt{}, F32Keys[PIECENUM], *head_QiziXY{ (unsigned char*)headQiziXY };
     int KeyRMKSize{ 0 };
-    if (Version <= 10) { // version <= 10 ¼æÈİ1.0ÒÔÇ°µÄ°æ±¾
+    if (Version <= 10) { // version <= 10 å…¼å®¹1.0ä»¥å‰çš„ç‰ˆæœ¬
         KeyRMKSize = KeyXYf = KeyXYt = 0;
     } else {
         function<unsigned char(unsigned char, unsigned char)> __calkey = [](unsigned char bKey, unsigned char cKey) {
-            return (((((bKey * bKey) * 3 + 9) * 3 + 8) * 2 + 1) * 3 + 8) * cKey; // % 256; // ±£³ÖÎª<256
+            return (((((bKey * bKey) * 3 + 9) * 3 + 8) * 2 + 1) * 3 + 8) * cKey; // % 256; // ä¿æŒä¸º<256
         };
         KeyXY = __calkey(headKeyXY, headKeyXY);
         KeyXYf = __calkey(headKeyXYf, KeyXY);
         KeyXYt = __calkey(headKeyXYt, KeyXYf);
         KeyRMKSize = (static_cast<unsigned char>(headKeysSum) * 256 + static_cast<unsigned char>(headKeyXY)) % 32000 + 767; // % 65536
-        if (Version >= 12) { // Æå×ÓÎ»ÖÃÑ­»·ÒÆ¶¯
-            vector<unsigned char> Qixy(begin(headQiziXY), end(headQiziXY)); // Êı×é²»ÄÜ¿½±´
+        if (Version >= 12) { // æ£‹å­ä½ç½®å¾ªç¯ç§»åŠ¨
+            vector<unsigned char> Qixy(begin(headQiziXY), end(headQiziXY)); // æ•°ç»„ä¸èƒ½æ‹·è´
             for (int i = 0; i != PIECENUM; ++i)
                 head_QiziXY[(i + KeyXY + 1) % PIECENUM] = Qixy[i];
         }
         for (int i = 0; i != PIECENUM; ++i)
-            head_QiziXY[i] -= KeyXY; // ±£³ÖÎª8Î»ÎŞ·ûºÅÕûÊı£¬<256
+            head_QiziXY[i] -= KeyXY; // ä¿æŒä¸º8ä½æ— ç¬¦å·æ•´æ•°ï¼Œ<256
     }
     int KeyBytes[4]{
         (headKeysSum & headKeyMask) | headKeyOrA,
@@ -412,18 +407,18 @@ void ChessManual::__readXQF(istream& is)
     for (int i = 0; i != PIECENUM; ++i)
         F32Keys[i] = copyright[i] & KeyBytes[i % 4]; // ord(c)
 
-    // È¡µÃÆå×Ó×Ö·û´®
+    // å–å¾—æ£‹å­å­—ç¬¦ä¸²
     wstring pieceChars(90, PieceManager::nullChar());
-    wstring pieChars = L"RNBAKABNRCCPPPPPrnbakabnrccppppp"; // QiziXYÉè¶¨µÄÆå×ÓË³Ğò
+    wstring pieChars = L"RNBAKABNRCCPPPPPrnbakabnrccppppp"; // QiziXYè®¾å®šçš„æ£‹å­é¡ºåº
     for (int i = 0; i != PIECENUM; ++i) {
         int xy = head_QiziXY[i];
-        if (xy <= 89) // ÓÃµ¥×Ö½Ú×ø±ê±íÊ¾, ½«×Ö½Ú±äÎªÊ®½øÖÆ,  Ê®Î»ÊıÎªX(0-8),¸öÎ»ÊıÎªY(0-9),ÆåÅÌµÄ×óÏÂ½ÇÎªÔ­µã(0, 0)
+        if (xy <= 89) // ç”¨å•å­—èŠ‚åæ ‡è¡¨ç¤º, å°†å­—èŠ‚å˜ä¸ºåè¿›åˆ¶,  åä½æ•°ä¸ºX(0-8),ä¸ªä½æ•°ä¸ºY(0-9),æ£‹ç›˜çš„å·¦ä¸‹è§’ä¸ºåŸç‚¹(0, 0)
             pieceChars[xy % 10 * 9 + xy / 10] = pieChars[i];
     }
     info_ = map<wstring, wstring>{
         { L"Version", to_wstring(Version) },
-        { L"Result", (map<unsigned char, wstring>{ { 0, L"Î´Öª" }, { 1, L"ºìÊ¤" }, { 2, L"ºÚÊ¤" }, { 3, L"ºÍÆå" } })[headPlayResult] },
-        { L"PlayType", (map<unsigned char, wstring>{ { 0, L"È«¾Ö" }, { 1, L"¿ª¾Ö" }, { 2, L"ÖĞ¾Ö" }, { 3, L"²Ğ¾Ö" } })[headCodeA_H[0]] },
+        { L"Result", (map<unsigned char, wstring>{ { 0, L"æœªçŸ¥" }, { 1, L"çº¢èƒœ" }, { 2, L"é»‘èƒœ" }, { 3, L"å’Œæ£‹" } })[headPlayResult] },
+        { L"PlayType", (map<unsigned char, wstring>{ { 0, L"å…¨å±€" }, { 1, L"å¼€å±€" }, { 2, L"ä¸­å±€" }, { 3, L"æ®‹å±€" } })[headCodeA_H[0]] },
         { L"TitleA", Tools::cvt.from_bytes(TitleA) },
         { L"Event", Tools::cvt.from_bytes(Event) },
         { L"Date", Tools::cvt.from_bytes(Date) },
@@ -433,7 +428,7 @@ void ChessManual::__readXQF(istream& is)
         { L"Opening", Tools::cvt.from_bytes(Opening) },
         { L"RMKWriter", Tools::cvt.from_bytes(RMKWriter) },
         { L"Author", Tools::cvt.from_bytes(Author) },
-        { FENKey, pieCharsToFEN(pieceChars) } // ¿ÉÄÜ´æÔÚ²»ÊÇºìÆåÏÈ×ßµÄÇé¿ö£¿ÔÚreadMoveºóÔÙ¸üĞÂÒ»ÏÂ£¡
+        { FENKey, pieCharsToFEN(pieceChars) } // å¯èƒ½å­˜åœ¨ä¸æ˜¯çº¢æ£‹å…ˆèµ°çš„æƒ…å†µï¼Ÿåœ¨readMoveåå†æ›´æ–°ä¸€ä¸‹ï¼
     };
     //__setFENplusFromPieChars(pieceChars, rootMove_->getSeat_pair().first->piece()->color());
     __setBoardFromInfo();
@@ -441,12 +436,12 @@ void ChessManual::__readXQF(istream& is)
     function<unsigned char(unsigned char, unsigned char)>
         __sub = [](unsigned char a, unsigned char b) {
             return a - b;
-        }; // ±£³ÖÎª<256
+        }; // ä¿æŒä¸º<256
 
     auto __readBytes = [&](char* bytes, int size) {
         auto pos = is.tellg();
         is.read(bytes, size);
-        if (Version > 10) // '×Ö½Ú½âÃÜ'
+        if (Version > 10) // 'å­—èŠ‚è§£å¯†'
             for (int i = 0; i != size; ++i)
                 bytes[i] = __sub(bytes[i], F32Keys[(i + pos) % 32]);
     };
@@ -472,7 +467,7 @@ void ChessManual::__readXQF(istream& is)
             if (tag & 0x20)
                 RemarkSize = __getRemarksize();
         }
-        if (RemarkSize > 0) { // # Èç¹ûÓĞ×¢½â
+        if (RemarkSize > 0) { // # å¦‚æœæœ‰æ³¨è§£
             char* rem = new char[RemarkSize + 1]();
             __readBytes(rem, RemarkSize);
             wstr = Tools::cvt.from_bytes(rem);
@@ -484,23 +479,23 @@ void ChessManual::__readXQF(istream& is)
     function<void(const SMove&)>
         __readMove = [&](const SMove& move) {
             auto remark = __readDataAndGetRemark();
-            //# Ò»²½ÆåµÄÆğµãºÍÖÕµãÓĞ¼òµ¥µÄ¼ÓÃÜ¼ÆËã£¬¶ÁÈëÊ±ĞèÒª»¹Ô­
+            //# ä¸€æ­¥æ£‹çš„èµ·ç‚¹å’Œç»ˆç‚¹æœ‰ç®€å•çš„åŠ å¯†è®¡ç®—ï¼Œè¯»å…¥æ—¶éœ€è¦è¿˜åŸ
             int fcolrow = __sub(frc, 0X18 + KeyXYf), tcolrow = __sub(trc, 0X20 + KeyXYt);
             assert(fcolrow <= 89 && tcolrow <= 89);
             __setMoveFromRowcol(move, (fcolrow % 10) * 10 + fcolrow / 10,
                 (tcolrow % 10) * 10 + tcolrow / 10, remark);
 
             char ntag{ tag };
-            if (ntag & 0x80) //# ÓĞ×ó×ÓÊ÷
+            if (ntag & 0x80) //# æœ‰å·¦å­æ ‘
                 __readMove(move->addNext());
-            if (ntag & 0x40) // # ÓĞÓÒ×ÓÊ÷
+            if (ntag & 0x40) // # æœ‰å³å­æ ‘
                 __readMove(move->addOther());
         };
 
     is.seekg(1024);
     rootMove_->setRemark(__readDataAndGetRemark());
     char rtag{ tag };
-    if (rtag & 0x80) //# ÓĞ×ó×ÓÊ÷
+    if (rtag & 0x80) //# æœ‰å·¦å­æ ‘
         __readMove(rootMove_->addNext());
 }
 
@@ -689,7 +684,7 @@ void ChessManual::__readInfo_PGN(wistream& wis)
 {
     wstring line{};
     wregex info{ LR"(\[(\w+)\s+\"([\s\S]*?)\"\])" };
-    while (getline(wis, line) && !line.empty()) { // ÒÔ¿ÕĞĞÎªÖÕÖ¹ÌØÕ÷
+    while (getline(wis, line) && !line.empty()) { // ä»¥ç©ºè¡Œä¸ºç»ˆæ­¢ç‰¹å¾
         wsmatch matches;
         if (regex_match(line, matches, info))
             info_[matches[1]] = matches[2];
@@ -707,7 +702,7 @@ void ChessManual::__readMove_PGN_ICCSZH(wistream& wis, RecFormat fmt)
         + (isPGN_ZH ? PieceManager::getZhChars() : PieceManager::getICCSChars())
         + LR"(]{4})\b)" };
     wstring remarkStr{ LR"((?:\s*\{([\s\S]*?)\})?)" };
-    wstring otherEndStr{ LR"(\s*(\)+)?)" }; // ¿ÉÄÜ´æÔÚ¶à¸öÓÒÀ¨ºÅ
+    wstring otherEndStr{ LR"(\s*(\)+)?)" }; // å¯èƒ½å­˜åœ¨å¤šä¸ªå³æ‹¬å·
     wregex moveReg{ otherBeginStr + boutStr + ICCSZhStr + remarkStr + otherEndStr },
         remReg{ remarkStr + LR"(1\.)" };
     wsmatch wsm{};
@@ -728,7 +723,7 @@ void ChessManual::__readMove_PGN_ICCSZH(wistream& wis, RecFormat fmt)
         //if (isPGN_ZH)
         // wcout << (*wtiMove).str() << L'\n' << move->toString() << endl;
         if (isPGN_ZH)
-            move->done(); // ÍÆ½øboardµÄ×´Ì¬±ä»¯
+            move->done(); // æ¨è¿›boardçš„çŠ¶æ€å˜åŒ–
         //if (isPGN_ZH)
         // wcout << board_->toString() << endl;
 
@@ -793,11 +788,11 @@ void ChessManual::__writeMove_PGN_ICCSZH(wostream& wos, RecFormat fmt) const
 void ChessManual::__readMove_PGN_CC(wistream& wis)
 {
     const wstring move_remStr{ Tools::getWString(wis) };
-    auto pos0 = move_remStr.find(L"\n("), pos1 = move_remStr.find(L"\n¡¾");
+    auto pos0 = move_remStr.find(L"\n("), pos1 = move_remStr.find(L"\nã€");
     wstring moveStr{ move_remStr.substr(0, min(pos0, pos1)) },
         remStr{ move_remStr.substr(min(pos0, move_remStr.size()), pos1) };
     wregex line_rg{ LR"(\n)" }, moveStrrg{ LR"(.{5})" },
-        moverg{ LR"(([^¡­¡¡]{4}[¡­¡¡]))" },
+        moverg{ LR"(([^â€¦ã€€]{4}[â€¦ã€€]))" },
         remrg{ LR"(\s*(\(\d+,\d+\)): \{([\s\S]*?)\})" };
     map<wstring, wstring> rems{};
     for (wsregex_iterator rp{ remStr.begin(), remStr.end(), remrg };
@@ -822,16 +817,16 @@ void ChessManual::__readMove_PGN_CC(wistream& wis)
                 __setMoveFromStr(move, zhStr.substr(0, 4), RecFormat::PGN_CC,
                     rems[L'(' + to_wstring(row) + L',' + to_wstring(col) + L')']);
 
-                if (zhStr.back() == L'¡­')
+                if (zhStr.back() == L'â€¦')
                     __readMove(move->addOther(), row, col + 1);
                 if (int(moveLines.size()) - 1 > row
-                    && moveLines[row + 1][col][0] != L'¡¡') {
+                    && moveLines[row + 1][col][0] != L'ã€€') {
                     move->done();
                     __readMove(move->addNext(), row + 1, col);
                     move->undo();
                 }
-            } else if (moveLines[row][col][0] == L'¡­') {
-                while (moveLines[row][++col][0] == L'¡­')
+            } else if (moveLines[row][col][0] == L'â€¦') {
+                while (moveLines[row][++col][0] == L'â€¦')
                     ;
                 __readMove(move, row, col);
             }
@@ -844,8 +839,8 @@ void ChessManual::__readMove_PGN_CC(wistream& wis)
 
 void ChessManual::__writeMove_PGN_CC(wostream& wos) const
 {
-    wstringstream remWss{};
-    wstring blankStr((getMaxCol() + 1) * 5, L'¡¡');
+    wostringstream remWss{};
+    wstring blankStr((getMaxCol() + 1) * 5, L'ã€€');
     vector<wstring> lineStr((getMaxRow() + 1) * 2, blankStr);
     function<void(const SMove&)>
         __setMovePGN_CC = [&](const SMove& move) {
@@ -856,20 +851,20 @@ void ChessManual::__writeMove_PGN_CC(wostream& wos) const
                        << move->remark() << L"}\n";
 
             if (move->next()) {
-                lineStr.at(row + 1).at(firstcol + 2) = L'¡ı';
+                lineStr.at(row + 1).at(firstcol + 2) = L'â†“';
                 __setMovePGN_CC(move->next());
             }
             if (move->other()) {
                 int fcol{ firstcol + 4 }, num{ move->other()->CC_ColNo() * 5 - fcol };
-                lineStr.at(row).replace(fcol, num, wstring(num, L'¡­'));
+                lineStr.at(row).replace(fcol, num, wstring(num, L'â€¦'));
                 __setMovePGN_CC(move->other());
             }
         };
 
     if (!currentMove_->remark().empty())
         remWss << L"(0,0): {" << currentMove_->remark() << L"}\n";
-    lineStr.front().replace(0, 3, L"¡¡¿ªÊ¼");
-    lineStr.at(1).at(2) = L'¡ı';
+    lineStr.front().replace(0, 3, L"ã€€å¼€å§‹");
+    lineStr.at(1).at(2) = L'â†“';
     if (rootMove_->next())
         __setMovePGN_CC(rootMove_->next());
     for (auto& line : lineStr)
@@ -882,7 +877,7 @@ void ChessManual::__setBoardFromInfo()
     board_->setPieces(FENTopieChars(FENplusToFEN(info_.at(FENKey))));
 }
 
-// ½«ÓÃaddNext´úÌæ
+// å°†ç”¨addNextä»£æ›¿
 void ChessManual::__setMoveFromRowcol(const SMove& move,
     int frowcol, int trowcol, const wstring& remark) const
 {
@@ -890,7 +885,7 @@ void ChessManual::__setMoveFromRowcol(const SMove& move,
     move->setRemark(remark);
 }
 
-// ½«ÓÃaddNext´úÌæ
+// å°†ç”¨addNextä»£æ›¿
 void ChessManual::__setMoveFromStr(const SMove& move,
     const wstring& str, RecFormat fmt, const wstring& remark) const
 {
@@ -912,7 +907,7 @@ void ChessManual::__setMoveZhStrAndNums()
             ++movCount_;
             maxCol_ = max(maxCol_, move->otherNo());
             maxRow_ = max(maxRow_, move->nextNo());
-            move->setCC_ColNo(maxCol_); // # ±¾×ÅÔÚÊÓÍ¼ÖĞµÄÁĞÊı
+            move->setCC_ColNo(maxCol_); // # æœ¬ç€åœ¨è§†å›¾ä¸­çš„åˆ—æ•°
             if (!move->remark().empty()) {
                 ++remCount_;
                 remLenMax_ = max(remLenMax_, static_cast<int>(move->remark().size()));
@@ -932,7 +927,7 @@ void ChessManual::__setMoveZhStrAndNums()
 
     movCount_ = remCount_ = remLenMax_ = maxRow_ = maxCol_ = 0;
     if (rootMove_->next())
-        __setZhStrAndNums(rootMove_->next()); // Çı¶¯º¯Êı
+        __setZhStrAndNums(rootMove_->next()); // é©±åŠ¨å‡½æ•°
 }
 
 void ChessManual::__setFENplusFromFEN(const wstring& FEN, PieceColor color)
@@ -942,109 +937,12 @@ void ChessManual::__setFENplusFromFEN(const wstring& FEN, PieceColor color)
 
 const wstring ChessManual::__moveInfo() const
 {
-    wstringstream wss{};
-    wss << L"¡¾×Å·¨Éî¶È£º" << maxRow_ << L", ÊÓÍ¼¿í¶È£º" << maxCol_ << L", ×Å·¨ÊıÁ¿£º" << movCount_
-        << L", ×¢½âÊıÁ¿£º" << remCount_ << L", ×¢½â×î³¤£º" << remLenMax_ << L"¡¿\n";
-    return wss.str();
+    wostringstream wos{};
+    wos << L"ã€ç€æ³•æ·±åº¦ï¼š" << maxRow_ << L", è§†å›¾å®½åº¦ï¼š" << maxCol_ << L", ç€æ³•æ•°é‡ï¼š" << movCount_
+        << L", æ³¨è§£æ•°é‡ï¼š" << remCount_ << L", æ³¨è§£æœ€é•¿ï¼š" << remLenMax_ << L"ã€‘\n";
+    return wos.str();
 }
 /* ===== ChessManual end. ===== */
-
-const wstring FENplusToFEN(const wstring& FENplus)
-{
-    return FENplus.substr(0, FENplus.find(L' '));
-}
-
-const wstring FENToFENplus(const wstring& FEN, PieceColor color)
-{
-    return (FEN + L" " + (color == PieceColor::RED ? L"r" : L"b") + L" - - 0 1");
-}
-
-const wstring pieCharsToFEN(const wstring& pieceChars)
-{
-    assert(pieceChars.size() == SEATNUM);
-    wstring fen{};
-    wregex linerg{ LR"(.{9})" };
-    for (wsregex_token_iterator lineIter{
-             pieceChars.begin(), pieceChars.end(), linerg, 0 },
-         end{};
-         lineIter != end; ++lineIter) {
-        wstringstream wss{};
-        int num{ 0 };
-        for (auto wch : (*lineIter).str()) {
-            if (wch != PieceManager::nullChar()) {
-                if (num) {
-                    wss << num;
-                    num = 0;
-                }
-                wss << wch;
-            } else
-                ++num;
-        }
-        if (num)
-            wss << num;
-        fen.insert(0, wss.str()).insert(0, L"/");
-    }
-    fen.erase(0, 1);
-
-    //assert(FENTopieChars(fen) == pieceChars);
-    return fen;
-}
-
-const wstring FENTopieChars(const wstring& fen)
-{
-    wstring pieceChars{};
-    wregex linerg{ LR"(/)" };
-    for (wsregex_token_iterator lineIter{ fen.begin(), fen.end(), linerg, -1 };
-         lineIter != wsregex_token_iterator{}; ++lineIter) {
-        wstringstream wss{};
-        for (auto wch : wstring{ *lineIter })
-            wss << (isdigit(wch)
-                    ? wstring(wch - L'0', PieceManager::nullChar())
-                    : wstring{ wch }); // ASCII: 0:48
-        pieceChars.insert(0, wss.str());
-    }
-
-    assert(fen == pieCharsToFEN(pieceChars));
-    return pieceChars;
-}
-
-const string getExtName(const RecFormat fmt)
-{
-    switch (fmt) {
-    case RecFormat::XQF:
-        return ".xqf";
-    case RecFormat::BIN:
-        return ".bin";
-    case RecFormat::JSON:
-        return ".json";
-    case RecFormat::PGN_ICCS:
-        return ".pgn_iccs";
-    case RecFormat::PGN_ZH:
-        return ".pgn_zh";
-    case RecFormat::PGN_CC:
-        return ".pgn_cc";
-    default:
-        return ".pgn_cc";
-    }
-}
-
-RecFormat getRecFormat(const string& ext)
-{
-    if (ext == ".xqf")
-        return RecFormat::XQF;
-    else if (ext == ".bin")
-        return RecFormat::BIN;
-    else if (ext == ".json")
-        return RecFormat::JSON;
-    else if (ext == ".pgn_iccs")
-        return RecFormat::PGN_ICCS;
-    else if (ext == ".pgn_zh")
-        return RecFormat::PGN_ZH;
-    else if (ext == ".pgn_cc")
-        return RecFormat::PGN_CC;
-    else
-        return RecFormat::PGN_CC;
-}
 
 void transDir(const string& dirfrom, const RecFormat fmt)
 {
@@ -1053,19 +951,19 @@ void transDir(const string& dirfrom, const RecFormat fmt)
     string dirto{ dirfrom.substr(0, dirfrom.rfind('.')) + getExtName(fmt) };
     function<void(const string&, const string&)>
         __trans = [&](const string& dirfrom, const string& dirto) {
-            long hFile = 0; //ÎÄ¼ş¾ä±ú
-            struct _finddata_t fileinfo; //ÎÄ¼şĞÅÏ¢
+            long hFile = 0; //æ–‡ä»¶å¥æŸ„
+            struct _finddata_t fileinfo; //æ–‡ä»¶ä¿¡æ¯
             if (_access(dirto.c_str(), 0) != 0)
                 _mkdir(dirto.c_str());
             if ((hFile = _findfirst((dirfrom + "/*").c_str(), &fileinfo)) != -1) {
                 do {
                     string filename{ fileinfo.name };
-                    if (fileinfo.attrib & _A_SUBDIR) { //Èç¹ûÊÇÄ¿Â¼,µü´úÖ®
+                    if (fileinfo.attrib & _A_SUBDIR) { //å¦‚æœæ˜¯ç›®å½•,è¿­ä»£ä¹‹
                         if (filename != "." && filename != "..") {
                             dcount += 1;
                             __trans(dirfrom + "/" + filename, dirto + "/" + filename);
                         }
-                    } else { //Èç¹ûÊÇÎÄ¼ş,Ö´ĞĞ×ª»»
+                    } else { //å¦‚æœæ˜¯æ–‡ä»¶,æ‰§è¡Œè½¬æ¢
                         string infilename{ dirfrom + "/" + filename };
                         string fileto{ dirto + "/" + filename.substr(0, filename.rfind('.')) };
                         string ext_old{ Tools::getExtStr(filename) };
@@ -1091,24 +989,24 @@ void transDir(const string& dirfrom, const RecFormat fmt)
         };
 
     __trans(dirfrom, dirto);
-    cout << dirfrom + " =>" << getExtName(fmt) << ": ×ª»»" << fcount << "¸öÎÄ¼ş, "
-         << dcount << "¸öÄ¿Â¼³É¹¦£¡\n   ×Å·¨ÊıÁ¿: "
-         << movcount << ", ×¢ÊÍÊıÁ¿: " << remcount << ", ×î´ó×¢ÊÍ³¤¶È: " << remlenmax << endl;
+    cout << dirfrom + " =>" << getExtName(fmt) << ": è½¬æ¢" << fcount << "ä¸ªæ–‡ä»¶, "
+         << dcount << "ä¸ªç›®å½•æˆåŠŸï¼\n   ç€æ³•æ•°é‡: "
+         << movcount << ", æ³¨é‡Šæ•°é‡: " << remcount << ", æœ€å¤§æ³¨é‡Šé•¿åº¦: " << remlenmax << endl;
 }
 
 void testTransDir(int fd, int td, int ff, int ft, int tf, int tt)
 {
     vector<string> dirfroms{
-        "c:\\ÆåÆ×\\Ê¾ÀıÎÄ¼ş",
-        "c:\\ÆåÆ×\\ÏóÆåÉ±×Å´óÈ«",
-        "c:\\ÆåÆ×\\ÒÉÄÑÎÄ¼ş",
-        "c:\\ÆåÆ×\\ÖĞ¹úÏóÆåÆåÆ×´óÈ«"
+        "c:\\æ£‹è°±\\ç¤ºä¾‹æ–‡ä»¶",
+        "c:\\æ£‹è°±\\è±¡æ£‹æ€ç€å¤§å…¨",
+        "c:\\æ£‹è°±\\ç–‘éš¾æ–‡ä»¶",
+        "c:\\æ£‹è°±\\ä¸­å›½è±¡æ£‹æ£‹è°±å¤§å…¨"
     };
     vector<RecFormat> fmts{
         RecFormat::XQF, RecFormat::BIN, RecFormat::JSON,
         RecFormat::PGN_ICCS, RecFormat::PGN_ZH, RecFormat::PGN_CC
     };
-    // µ÷½ÚÈı¸öÑ­»·±äÁ¿µÄ³õÖµ¡¢ÖÕÖµ£¬¿ØÖÆ×ª»»Ä¿Â¼
+    // è°ƒèŠ‚ä¸‰ä¸ªå¾ªç¯å˜é‡çš„åˆå€¼ã€ç»ˆå€¼ï¼Œæ§åˆ¶è½¬æ¢ç›®å½•
     for (int dir = fd; dir != td; ++dir)
         for (int fIndex = ff; fIndex != ft; ++fIndex)
             for (int tIndex = tf; tIndex != tt; ++tIndex)
@@ -1116,57 +1014,13 @@ void testTransDir(int fd, int td, int ff, int ft, int tf, int tt)
                     transDir(dirfroms[dir] + getExtName(fmts[fIndex]), fmts[tIndex]);
 }
 
-const wstring board_test()
-{
-    wstringstream wss{};
-    Board board{};
-    for (auto& fen : { PieceManager::FirstFEN(),
-             wstring{ L"5a3/4ak2r/6R2/8p/9/9/9/B4N2B/4K4/3c5" } }) {
-        auto pieceChars = FENTopieChars(fen);
-
-        board.setPieces(pieceChars);
-        wss << "     fen:" << fen
-            << "\nchar_FEN:" << pieCharsToFEN(pieceChars)
-            << "\ngetChars:" << pieceChars
-            << "\nboardGet:" << board.getPieceChars() << L'\n';
-
-        //*
-        auto __getCanMoveSeats = [&](void) {
-            wss << L'\n' << board.toString();
-
-            for (auto color : { PieceColor::RED, PieceColor::BLACK }) {
-                auto rowcols = board.getLiveRowCols(color);
-                wss << L"isBottomSide: " << boolalpha << board.isBottomSide(color) << L'\n'
-                    << getRowColsStr(rowcols) << L'\n';
-                for (auto& rowcol : rowcols)
-                    wss << L"From:" << rowcol.first << rowcol.second << L" CanMovtTo: "
-                        << getRowColsStr(board.getCanMoveRowCols(rowcol.first, rowcol.second))
-                        << L'\n';
-                wss << L'\n';
-            }
-        };
-        __getCanMoveSeats();
-        //*/
-        /*
-        for (const auto chg : {
-                 ChangeType::EXCHANGE, ChangeType::ROTATE, ChangeType::SYMMETRY }) { //
-            board.changeSide(chg);
-            __getCanMoveSeats();
-        }
-        //*/
-        wss << L"\n";
-    }
-    return wss.str();
-}
-
 //*
-const wstring chessmanual_test()
+const wstring testChessmanual()
 {
-    wstringstream wss{};
-    wss << board_test();
+    wostringstream wos{};
+    ChessManual cm{};
 
-    ChessManual cm = ChessManual();
-    //wss << cm.toString();
+    //wos << cm.toString();
     //read("01.xqf");
 
     /*
@@ -1192,9 +1046,9 @@ const wstring chessmanual_test()
     auto str2 = toString();
     changeSide(ChangeType::SYMMETRY);
     auto str3 = toString();
-    wss << str0 + str1 + str2 + str3;
+    wos << str0 + str1 + str2 + str3;
     //*/
 
-    return wss.str();
+    return wos.str();
 }
 }

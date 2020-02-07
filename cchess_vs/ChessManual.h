@@ -1,7 +1,7 @@
-//#pragma once
+ï»¿//#pragma once
 #ifndef CHESSMANUAL_H
 #define CHESSMANUAL_H
-// ÖĞ¹úÏóÆåÆåÅÌ²¼¾ÖÀàĞÍ by-cjp
+// ä¸­å›½è±¡æ£‹æ£‹ç›˜å¸ƒå±€ç±»å‹ by-cjp
 
 #include "ChessType.h"
 
@@ -13,7 +13,7 @@ class ChessManual {
 private:
     typedef shared_ptr<Move> SMove;
 
-    // ×Å·¨½ÚµãÀà
+    // ç€æ³•èŠ‚ç‚¹ç±»
     class Move : public enable_shared_from_this<Move> {
     public:
         Move() = default;
@@ -29,8 +29,8 @@ private:
         const SMove& other() const { return other_; }
         const SMove prev() const { return prev_.lock(); }
 
-        SMove& addNext(); // ´ıÉ¾³ı
-        SMove& addOther(); // ´ıÉ¾³ı
+        SMove& addNext();
+        SMove& addOther(); 
         SMove& addNext(const SSeat_pair& seat_pair, const wstring& remark);
         SMove& addOther(const SSeat_pair& seat_pair, const wstring& remark);
 
@@ -58,14 +58,14 @@ private:
 
     private:
         pair<SSeat, SSeat> seat_pair_{};
-        wstring remark_{}; // ×¢ÊÍ
+        wstring remark_{}; // æ³¨é‡Š
         weak_ptr<Move> prev_{};
 
-        wstring zhStr_{}; // ÖĞÎÄ×Å·¨ÃèÊö
+        wstring zhStr_{}; // ä¸­æ–‡ç€æ³•æè¿°
         SPiece eatPie_{};
         SMove next_{}, other_{};
 
-        int nextNo_{ 0 }, otherNo_{ 0 }, CC_ColNo_{ 0 }; // CC_ColNo_:Í¼ÖĞÁĞÎ»ÖÃ£¨ĞèÔÚChessManual::setMovesÈ·¶¨£©
+        int nextNo_{ 0 }, otherNo_{ 0 }, CC_ColNo_{ 0 }; // CC_ColNo_:å›¾ä¸­åˆ—ä½ç½®ï¼ˆéœ€åœ¨ChessManual::setMovesç¡®å®šï¼‰
     };
 
 public:
@@ -77,7 +77,7 @@ public:
     SMove& addNextMove(SMove& move, const wstring& str, RecFormat fmt, const wstring& remark) const;
     SMove& addOtherMove(SMove& move, const wstring& str, RecFormat fmt, const wstring& remark) const;
 
-    void reset(); // ÖØÖÃÎª³£¹æµÄÏÂÆå³õÊ¼×´Ì¬£¬²»ĞèÊÖ¹¤²¼×Ó
+    void reset(); // é‡ç½®ä¸ºå¸¸è§„çš„ä¸‹æ£‹åˆå§‹çŠ¶æ€ï¼Œä¸éœ€æ‰‹å·¥å¸ƒå­
     void read(const string& infilename);
     void write(const string& outfilename);
 
@@ -130,18 +130,11 @@ private:
     int movCount_{ 0 }, remCount_{ 0 }, remLenMax_{ 0 }, maxRow_{ 0 }, maxCol_{ 0 };
 };
 
-const wstring FENplusToFEN(const wstring& FENplus);
-const wstring FENToFENplus(const wstring& FEN, PieceColor color);
-const wstring pieCharsToFEN(const wstring& pieceChars); // ±ãÀûº¯Êı£¬ÏÂÍ¬
-const wstring FENTopieChars(const wstring& fen);
-
-const string getExtName(const RecFormat fmt);
-RecFormat getRecFormat(const string& ext);
-
 void transDir(const string& dirfrom, const RecFormat fmt);
 void testTransDir(int fd, int td, int ff, int ft, int tf, int tt);
 
-const wstring chessmanual_test();
+const wstring testChessmanual();
+
 }
 
 #endif
