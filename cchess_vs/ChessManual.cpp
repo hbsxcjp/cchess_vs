@@ -49,8 +49,7 @@ shared_ptr<ChessManual::Move>& ChessManual::Move::addNext(const SSeat_pair& prow
 {
 
     auto nextMove = this->addNext();
-    nextMove->setSeatPair(prowcol_pair);
-    nextMove->setRemark(remark);
+    nextMove->setSeatPairRemark(prowcol_pair, remark);
     return next_ = nextMove;
 }
 
@@ -58,9 +57,14 @@ shared_ptr<ChessManual::Move>& ChessManual::Move::addOther(const SSeat_pair& pro
 {
 
     auto otherMove = this->addOther();
-    otherMove->setSeatPair(prowcol_pair);
-    otherMove->setRemark(remark);
+    otherMove->setSeatPairRemark(prowcol_pair, remark);
     return other_ = otherMove;
+}
+
+void ChessManual::Move::setSeatPairRemark(const SSeat_pair& seat_pair, const wstring& remark)
+{
+    seat_pair_ = seat_pair;
+    remark_ = remark;
 }
 
 vector<shared_ptr<ChessManual::Move>> ChessManual::Move::getPrevMoves()
@@ -190,14 +194,13 @@ void ChessManual::changeSide(ChangeType ct)
         prevMoves = currentMove_->getPrevMoves();
     backTo(rootMove_);
     board_->changeSide(ct);
+
     if (ct != ChangeType::EXCHANGE) {
-        auto changeRowcol = (ct == ChangeType::ROTATE
-                ? &SeatManager::getRotate
-                : &SeatManager::getSymmetry);
+        auto changeRowcol = (ct == ChangeType::ROTATE ? &SeatManager::getRotate : &SeatManager::getSymmetry);
         //auto changeRowcol = mem_fn(ct == ChangeType::ROTATE ? &SeatManager::getRotate : &SeatManager::getSymmetry);
         function<void(const SMove&)>
             __resetMove = [&](const SMove& move) {
-                __setMoveFromRowcol(move, changeRowcol(move->frowcol()), // 改成addNext形式后，需要先暂存下一个move，带提取rowcol执行addNext后再丢弃
+                __setMoveFromRowcol(move, changeRowcol(move->frowcol()), // 改成addNext形式后，需要先暂存下一个move，提取rowcol执行addNext后再丢弃
                     changeRowcol(move->trowcol()), move->remark());
                 if (move->next())
                     __resetMove(move->next());
@@ -207,6 +210,7 @@ void ChessManual::changeSide(ChangeType ct)
         if (rootMove_->next())
             __resetMove(rootMove_->next());
     }
+
     __setFENplusFromFEN(pieCharsToFEN(board_->getPieceChars()), PieceColor::RED);
     if (ct != ChangeType::ROTATE)
         __setMoveZhStrAndNums();
@@ -320,7 +324,78 @@ const wstring ChessManual::toString()
         };
     if (currentMove_->next())
         __printMoveBoard(false);
-//*/
+    //*/
+    return wos.str();
+}
+
+void ChessManual::__setBoardFromInfo()
+{
+    board_->setPieces(FENTopieChars(FENplusToFEN(info_.at(FENKey))));
+}
+
+// 将用addNext代替
+void ChessManual::__setMoveFromRowcol(const SMove& move,
+    int frowcol, int trowcol, const wstring& remark) const
+{
+    move->setSeatPair(board_->getSeatPair(frowcol, trowcol));
+    move->setRemark(remark);
+}
+
+// 将用addNext代替
+void ChessManual::__setMoveFromStr(const SMove& move,
+    const wstring& str, RecFormat fmt, const wstring& remark) const
+{
+    if (fmt == RecFormat::PGN_ZH || fmt == RecFormat::PGN_CC)
+        move->setSeatPairRemark(board_->getSeatPair(str, fmt), remark);
+    else
+        move->setSeatPairRemark(board_->getSeatPair(
+                                    PieceManager::getRowFromICCSChar(str.at(1)),
+                                    PieceManager::getColFromICCSChar(str.at(0)),
+                                    PieceManager::getRowFromICCSChar(str.at(3)),
+                                    PieceManager::getColFromICCSChar(str.at(2))),
+            remark);
+}
+
+void ChessManual::__setMoveZhStrAndNums()
+{
+    function<void(const SMove&)>
+        __setZhStrAndNums = [&](const SMove& move) {
+            ++movCount_;
+            maxCol_ = max(maxCol_, move->otherNo());
+            maxRow_ = max(maxRow_, move->nextNo());
+            move->setCC_ColNo(maxCol_); // # 本着在视图中的列数
+            if (!move->remark().empty()) {
+                ++remCount_;
+                remLenMax_ = max(remLenMax_, static_cast<int>(move->remark().size()));
+            }
+            move->setZhStr(board_->getZhStr(move->getSeat_pair()));
+
+            move->done();
+            if (move->next())
+                __setZhStrAndNums(move->next());
+            move->undo();
+
+            if (move->other()) {
+                ++maxCol_;
+                __setZhStrAndNums(move->other());
+            }
+        };
+
+    movCount_ = remCount_ = remLenMax_ = maxRow_ = maxCol_ = 0;
+    if (rootMove_->next())
+        __setZhStrAndNums(rootMove_->next()); // 驱动函数
+}
+
+void ChessManual::__setFENplusFromFEN(const wstring& FEN, PieceColor color)
+{
+    info_[FENKey] = FENToFENplus(FEN, color);
+}
+
+const wstring ChessManual::__moveInfo() const
+{
+    wostringstream wos{};
+    wos << L"【着法深度：" << maxRow_ << L", 视图宽度：" << maxCol_ << L", 着法数量：" << movCount_
+        << L", 注解数量：" << remCount_ << L", 注解最长：" << remLenMax_ << L"】\n";
     return wos.str();
 }
 
@@ -587,39 +662,6 @@ void ChessManual::__writeBIN(ostream& os) const
         __writeMove(rootMove_->next());
 }
 
-/*
-void ChessManual::__readJSON(istream& is)
-{
-    Json::CharReaderBuilder builder;
-    Json::Value root;
-    JSONCPP_STRING errs;
-    if (!parseFromStream(builder, is, &root, &errs))
-        return;
-
-    Json::Value infoItem{ root["info"] };
-    for (auto& key : infoItem.getMemberNames())
-        info_[Tools::cvt.from_bytes(key)] = Tools::cvt.from_bytes(infoItem[key].asString());
-    __setBoardFromInfo();
-
-    auto __readMove = [&](const SMove& move, Json::Value& item,
-                          const SMove& addFunc(const SSeat_pair&, const wstring&)) {
-        int frowcol{ item["f"].asInt() }, trowcol{ item["t"].asInt() };
-        __setMoveFromRowcol(move, frowcol, trowcol,
-            (item.isMember("r")) ? Tools::cvt.from_bytes(item["r"].asString()) : wstring{});
-
-        if (item.isMember("n"))
-            __readMove(move->addNext(), item["n"]);
-        if (item.isMember("o"))
-            __readMove(move->addOther(), item["o"]);
-    };
-
-    rootMove_->setRemark(Tools::cvt.from_bytes(root["remark"].asString()));
-    Json::Value rootItem{ root["moves"] };
-    if (!rootItem.isNull())
-        __readMove(rootMove_, NEXT, rootItem);
-}
-//*/
-//*
 void ChessManual::__readJSON(istream& is)
 {
     Json::CharReaderBuilder builder;
@@ -650,7 +692,7 @@ void ChessManual::__readJSON(istream& is)
     if (!rootItem.isNull())
         __readMove(rootMove_->addNext(), rootItem);
 }
-//*/
+
 void ChessManual::__writeJSON(ostream& os) const
 {
     Json::Value root{}, infoItem{};
@@ -871,81 +913,10 @@ void ChessManual::__writeMove_PGN_CC(wostream& wos) const
         wos << line << L'\n';
     wos << remWss.str() << __moveInfo();
 }
-
-void ChessManual::__setBoardFromInfo()
-{
-    board_->setPieces(FENTopieChars(FENplusToFEN(info_.at(FENKey))));
-}
-
-// 将用addNext代替
-void ChessManual::__setMoveFromRowcol(const SMove& move,
-    int frowcol, int trowcol, const wstring& remark) const
-{
-    move->setSeatPair(board_->getSeatPair(frowcol, trowcol));
-    move->setRemark(remark);
-}
-
-// 将用addNext代替
-void ChessManual::__setMoveFromStr(const SMove& move,
-    const wstring& str, RecFormat fmt, const wstring& remark) const
-{
-    if (fmt == RecFormat::PGN_ZH || fmt == RecFormat::PGN_CC)
-        move->setSeatPair(board_->getSeatPair(str, fmt));
-    else
-        move->setSeatPair(board_->getSeatPair(
-            PieceManager::getRowFromICCSChar(str.at(1)),
-            PieceManager::getColFromICCSChar(str.at(0)),
-            PieceManager::getRowFromICCSChar(str.at(3)),
-            PieceManager::getColFromICCSChar(str.at(2))));
-    move->setRemark(remark);
-}
-
-void ChessManual::__setMoveZhStrAndNums()
-{
-    function<void(const SMove&)>
-        __setZhStrAndNums = [&](const SMove& move) {
-            ++movCount_;
-            maxCol_ = max(maxCol_, move->otherNo());
-            maxRow_ = max(maxRow_, move->nextNo());
-            move->setCC_ColNo(maxCol_); // # 本着在视图中的列数
-            if (!move->remark().empty()) {
-                ++remCount_;
-                remLenMax_ = max(remLenMax_, static_cast<int>(move->remark().size()));
-            }
-            move->setZhStr(board_->getZhStr(move->getSeat_pair()));
-
-            move->done();
-            if (move->next())
-                __setZhStrAndNums(move->next());
-            move->undo();
-
-            if (move->other()) {
-                ++maxCol_;
-                __setZhStrAndNums(move->other());
-            }
-        };
-
-    movCount_ = remCount_ = remLenMax_ = maxRow_ = maxCol_ = 0;
-    if (rootMove_->next())
-        __setZhStrAndNums(rootMove_->next()); // 驱动函数
-}
-
-void ChessManual::__setFENplusFromFEN(const wstring& FEN, PieceColor color)
-{
-    info_[FENKey] = FENToFENplus(FEN, color);
-}
-
-const wstring ChessManual::__moveInfo() const
-{
-    wostringstream wos{};
-    wos << L"【着法深度：" << maxRow_ << L", 视图宽度：" << maxCol_ << L", 着法数量：" << movCount_
-        << L", 注解数量：" << remCount_ << L", 注解最长：" << remLenMax_ << L"】\n";
-    return wos.str();
-}
 /* ===== ChessManual end. ===== */
 
 void transDir(const string& dirfrom, const RecFormat fmt)
-{ 
+{
     int fcount{}, dcount{}, movcount{}, remcount{}, remlenmax{};
     string extensions{ ".xqf.pgn_iccs.pgn_zh.pgn_cc.bin.json" };
     string dirto{ dirfrom.substr(0, dirfrom.rfind('.')) + getExtName(fmt) };
@@ -1014,14 +985,13 @@ void testTransDir(int fd, int td, int ff, int ft, int tf, int tt)
                     transDir(dirfroms[dir] + getExtName(fmts[fIndex]), fmts[tIndex]);
 }
 
- //*
+//*
 const wstring testChessmanual()
 {
     wostringstream wos{};
     ChessManual cm{};
-
-    //wos << cm.toString();
-    //read("01.xqf");
+    //cm.read("01.xqf");
+    wos << cm.toString();
 
     /*
     write("01.bin");

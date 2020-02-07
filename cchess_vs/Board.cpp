@@ -391,7 +391,7 @@ const wstring testBoard()
         };
         __getCanMoveSeats();
         //*/
-        //*
+        /*
         for (const auto chg : {
                  ChangeType::EXCHANGE, ChangeType::ROTATE, ChangeType::SYMMETRY }) { //
             board.changeSide(chg);

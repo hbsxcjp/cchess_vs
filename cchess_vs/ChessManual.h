@@ -34,8 +34,11 @@ private:
         SMove& addNext(const SSeat_pair& seat_pair, const wstring& remark);
         SMove& addOther(const SSeat_pair& seat_pair, const wstring& remark);
 
+        void setSeatPairRemark(const SSeat_pair& seat_pair, const wstring& remark);
         void setSeatPair(const SSeat_pair& seat_pair) { seat_pair_ = seat_pair; }
-        void setRemark(const wstring& remark) { remark_ = remark; }
+        void setRemark(const wstring& remark) { 
+            remark_ = remark; 
+            }
         void setPrev(const weak_ptr<Move>& prev) { prev_ = prev; }
         void setZhStr(const wstring& zhStr) { zhStr_ = zhStr; }
 
@@ -98,6 +101,15 @@ public:
     const wstring toString();
 
 private:
+    void __setFENplusFromFEN(const wstring& FEN, PieceColor color);
+    void __setBoardFromInfo();
+
+    void __setMoveFromRowcol(const SMove& move, int frowcol, int trowcol, const wstring& remark) const;
+    void __setMoveFromStr(const SMove& move, const wstring& str, RecFormat fmt, const wstring& remark) const;
+    void __setMoveZhStrAndNums();
+
+    const wstring __moveInfo() const;
+
     void __readXQF(istream& is);
 
     void __readBIN(istream& is);
@@ -114,15 +126,6 @@ private:
 
     void __readMove_PGN_CC(wistream& wis);
     void __writeMove_PGN_CC(wostream& wos) const;
-
-    void __setFENplusFromFEN(const wstring& FEN, PieceColor color);
-    void __setBoardFromInfo();
-
-    void __setMoveFromRowcol(const SMove& move, int frowcol, int trowcol, const wstring& remark) const;
-    void __setMoveFromStr(const SMove& move, const wstring& str, RecFormat fmt, const wstring& remark) const;
-    void __setMoveZhStrAndNums();
-
-    const wstring __moveInfo() const;
 
     map<wstring, wstring> info_;
     shared_ptr<Board> board_;
