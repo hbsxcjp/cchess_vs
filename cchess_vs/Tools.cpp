@@ -1,4 +1,4 @@
-#include "Tools.h"
+ï»¿#include "Tools.h"
 
 #include <algorithm>
 #include <direct.h>
@@ -11,7 +11,7 @@ using namespace std;
 
 namespace Tools {
 
-wstring_convert<codecvt<wchar_t, char, mbstate_t>> cvt {};
+wstring_convert<codecvt<wchar_t, char, mbstate_t>> cvt{};
 
 template <typename StrType>
 StrType trim(const StrType& str)
@@ -23,7 +23,7 @@ StrType trim(const StrType& str)
     str.erase(pr.base(), str.end());
     return str;
     //*/
-    size_t first { 0 }, last { str.size() };
+    size_t first{ 0 }, last{ str.size() };
     for (auto& c : str)
         if (isspace(c))
             ++first;
@@ -39,7 +39,7 @@ StrType trim(const StrType& str)
 
 const string getExtStr(const string& filename)
 {
-    string ext { filename.substr(filename.rfind('.')) };
+    string ext{ filename.substr(filename.rfind('.')) };
     for (auto& c : ext)
         c = tolower(c);
     return ext;
@@ -47,7 +47,7 @@ const string getExtStr(const string& filename)
 
 const wstring getWString(wistream& wis)
 {
-    wstringstream wss {};
+    wstringstream wss{};
     wis >> noskipws >> wss.rdbuf(); // C++ standard library p847
     return wss.str();
 }
@@ -63,19 +63,18 @@ wstring readFile(const string& fileName)
 void writeFile(const wstring& fileName, const wstring& wstr)
 {
     wofstream wofs(fileName);
-    //if (wofs.good())
-    //    cout << "Open file!" << endl;
-    wofs << wstr;
+    if (wofs)
+        wofs << wstr << flush;
     wofs.close();
 }
 
 void getFiles(const string& path, vector<string>& files)
 {
-    long hFile = 0; //ÎÄ¼ş¾ä±ú
-    struct _finddata_t fileinfo; //ÎÄ¼şĞÅÏ¢
-    string p {};
+    long hFile = 0; //æ–‡ä»¶å¥æŸ„
+    struct _finddata_t fileinfo; //æ–‡ä»¶ä¿¡æ¯
+    string p{};
     if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1) {
-        do { //Èç¹ûÊÇÄ¿Â¼,µü´úÖ®  //Èç¹û²»ÊÇ,¼ÓÈëÁĞ±í
+        do { //å¦‚æœæ˜¯ç›®å½•,è¿­ä»£ä¹‹  //å¦‚æœä¸æ˜¯,åŠ å…¥åˆ—è¡¨
             if (fileinfo.attrib & _A_SUBDIR) {
                 if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
                     getFiles(p.assign(path).append("\\").append(fileinfo.name), files);
@@ -88,9 +87,9 @@ void getFiles(const string& path, vector<string>& files)
 
 /*****************************************************************************************
 Function:       CopyFile
-Description:    ¸´ÖÆÎÄ¼ş
-Input:          SourceFile:Ô­ÎÄ¼şÂ·¾¶ NewFile:¸´ÖÆºóµÄÎÄ¼şÂ·¾¶
-Return:         1:³É¹¦ 0:Ê§°Ü
+Description:    å¤åˆ¶æ–‡ä»¶
+Input:          SourceFile:åŸæ–‡ä»¶è·¯å¾„ NewFile:å¤åˆ¶åçš„æ–‡ä»¶è·¯å¾„
+Return:         1:æˆåŠŸ 0:å¤±è´¥
 ******************************************************************************************/
 int copyFile(const char* SourceFile, const char* NewFile)
 {
@@ -99,22 +98,22 @@ int copyFile(const char* SourceFile, const char* NewFile)
 
     //try
     //{
-    in.open(SourceFile, ios::binary); //´ò¿ªÔ´ÎÄ¼ş
-    if (in.fail()) //´ò¿ªÔ´ÎÄ¼şÊ§°Ü
+    in.open(SourceFile, ios::binary); //æ‰“å¼€æºæ–‡ä»¶
+    if (in.fail()) //æ‰“å¼€æºæ–‡ä»¶å¤±è´¥
     {
         cout << "Error 1: Fail to open the source file." << endl;
         in.close();
         out.close();
         return 0;
     }
-    out.open(NewFile, ios::binary); //´´½¨Ä¿±êÎÄ¼ş
-    if (out.fail()) //´´½¨ÎÄ¼şÊ§°Ü
+    out.open(NewFile, ios::binary); //åˆ›å»ºç›®æ ‡æ–‡ä»¶
+    if (out.fail()) //åˆ›å»ºæ–‡ä»¶å¤±è´¥
     {
         cout << "Error 2: Fail to create the new file." << endl;
         out.close();
         in.close();
         return 0;
-    } else //¸´ÖÆÎÄ¼ş
+    } else //å¤åˆ¶æ–‡ä»¶
     {
         out << in.rdbuf();
         out.close();
@@ -127,10 +126,10 @@ int copyFile(const char* SourceFile, const char* NewFile)
     //}
 }
 
-// ²âÊÔ
+// æµ‹è¯•
 const wstring test()
 {
-    wstringstream wss {};
+    wstringstream wss{};
     return wss.str();
 }
 }

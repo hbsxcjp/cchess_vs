@@ -945,7 +945,7 @@ const wstring ChessManual::__moveInfo() const
 /* ===== ChessManual end. ===== */
 
 void transDir(const string& dirfrom, const RecFormat fmt)
-{
+{ 
     int fcount{}, dcount{}, movcount{}, remcount{}, remlenmax{};
     string extensions{ ".xqf.pgn_iccs.pgn_zh.pgn_cc.bin.json" };
     string dirto{ dirfrom.substr(0, dirfrom.rfind('.')) + getExtName(fmt) };
@@ -1014,7 +1014,7 @@ void testTransDir(int fd, int td, int ff, int ft, int tf, int tt)
                     transDir(dirfroms[dir] + getExtName(fmts[fIndex]), fmts[tIndex]);
 }
 
-//*
+ //*
 const wstring testChessmanual()
 {
     wostringstream wos{};

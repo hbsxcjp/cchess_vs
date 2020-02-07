@@ -14,12 +14,12 @@ int main(int argc, char const* argv[])
     try {
         using namespace std::chrono;
         //std::locale loc = std::locale::global(std::locale(""));
-        setlocale(LC_ALL, "");
+        setlocale(LC_ALL, "chs");
         std::ios_base::sync_with_stdio(false);
 
         auto time0 = steady_clock::now();
-        
-        //*
+
+        //* 
         std::wcout << testBoard();
         Tools::writeFile(L"board.txt", testBoard());
         //std::wcout << testChessmanual();

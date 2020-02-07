@@ -28,7 +28,7 @@ public:
 
     void setPieces(const wstring& pieceChars);
     void changeSide(const ChangeType ct);
-
+ 
     const wstring getZhStr(SSeat_pair seat_pair) const;
     const wstring getPieceChars() const;
     const wstring toString() const;
@@ -56,6 +56,6 @@ const string getExtName(const RecFormat fmt);
 RecFormat getRecFormat(const string& ext);
 
 const wstring testBoard();
-
+ 
 }
 #endif

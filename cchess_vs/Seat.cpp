@@ -43,7 +43,7 @@ inline const SSeat& Seats::getSeat(int row, int col) const
 {
     return allSeats_.at(SeatManager::getIndex_rc(row, col));
 }
-
+ 
 inline const SSeat& Seats::getSeat(int rowcol) const
 {
     return allSeats_.at(SeatManager::getIndex_rc(rowcol));
@@ -504,7 +504,7 @@ const wstring getSeatsStr(const vector<SSeat>& seats)
 {
     wostringstream wos{};
     wos << seats.size() << L"个: ";
-    for (auto& seat : seats)
+    for (auto& seat : seats) 
         wos << seat->toString() << L' ';
     return wos.str();
 }

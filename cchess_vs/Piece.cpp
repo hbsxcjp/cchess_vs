@@ -12,7 +12,7 @@ Piece::Piece(wchar_t ch)
 {
 }
 
-const wstring Piece::toString() const
+ const wstring Piece::toString() const
 {
     wostringstream wos{};
     wos << (color() == PieceColor::RED ? L'+' : L'*') << static_cast<int>(kind())
@@ -79,4 +79,4 @@ const map<PieceColor, wstring> PieceManager::numChars_{
 const wstring PieceManager::ICCSChars_{ L"abcdefghi" };
 const wstring PieceManager::FirstFEN_{ L"rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR" };
 /* ===== PieceManager end. ===== */
-}
+} 

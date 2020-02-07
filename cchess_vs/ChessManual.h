@@ -129,7 +129,7 @@ private:
     SMove rootMove_, currentMove_;
     int movCount_{ 0 }, remCount_{ 0 }, remLenMax_{ 0 }, maxRow_{ 0 }, maxCol_{ 0 };
 };
-
+ 
 void transDir(const string& dirfrom, const RecFormat fmt);
 void testTransDir(int fd, int td, int ff, int ft, int tf, int tt);
 

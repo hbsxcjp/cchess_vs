@@ -32,7 +32,7 @@ private:
 class Seats {
 public:
     Seats();
-
+     
     const SSeat& getSeat(int row, int col) const;
     const SSeat& getSeat(int rowcol) const;
     const SSeat& getSeat(RowCol_pair rowcol_pair) const;
@@ -118,3 +118,4 @@ const wstring getRowColsStr(const RowCol_pair_vector& rowcols);
 }
 
 #endif
+ 

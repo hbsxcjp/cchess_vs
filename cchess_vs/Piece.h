@@ -1,7 +1,7 @@
 ﻿//#pragma once
 #ifndef PIECE_H
 #define PIECE_H
-
+ 
 #include "ChessType.h"
 
 namespace PieceSpace {
@@ -41,7 +41,7 @@ public:
 
 private:
     vector<SPiece> allPieces_;
-};
+ };
 
 // 棋子管理类
 class PieceManager {

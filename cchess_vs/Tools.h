@@ -1,4 +1,4 @@
-//#pragma once
+ï»¿//#pragma once
 #ifndef TOOLS_H
 #define TOOLS_H
 
@@ -23,12 +23,12 @@ const std::wstring getWString(std::wistream& wis);
 std::wstring readFile(const std::string& fileName);
 
 void writeFile(const std::wstring& fileName, const std::wstring& ws);
-
+ 
 void getFiles(const std::string& path, std::vector<std::string>& files);
 
 int copyFile(const char* sourceFile, const char* newFile);
 
-// ²âÊÔº¯Êý
+// Â²Ã¢ÃŠÃ”ÂºÂ¯ÃŠÃ½
 const std::wstring test();
 
 } //

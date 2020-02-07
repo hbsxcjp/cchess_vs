@@ -53,9 +53,9 @@ inline SSeat_pair Board::getSeatPair(int frow, int fcol, int trow, int tcol) con
 {
     return make_pair(seats_->getSeat(frow, fcol), seats_->getSeat(trow, tcol));
 }
-
+ 
 SSeat_pair Board::getSeatPair(int frowcol, int trowcol) const // 内联不成功
-{
+{ 
     return make_pair(seats_->getSeat(frowcol), seats_->getSeat(trowcol));
 }
 
@@ -402,5 +402,5 @@ const wstring testBoard()
     }
     return wos.str();
 }
-
+ 
 }
