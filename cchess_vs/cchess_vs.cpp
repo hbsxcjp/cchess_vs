@@ -25,9 +25,9 @@ int main(int argc, char const* argv[])
         ofs << testBoard() << flush;
         ofs.close();
         //*/
-        //std::wcout << testBoard();
         //Tools::writeFile(fname, testBoard());
-        std::wcout << testChessmanual();
+        std::wcout << testBoard();
+        //std::wcout << testChessmanual();
         /*
         if (argc == 7)
             testTransDir(std::stoi(argv[1]), std::stoi(argv[2]),

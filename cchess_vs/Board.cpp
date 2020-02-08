@@ -24,13 +24,14 @@ bool Board::isKilled(PieceColor color) const
     if (fcol == othKingSeat->col()) {
         int krow{ kingSeat->row() }, orow{ othKingSeat->row() },
             lrow{ isBottom ? krow : orow }, urow{ isBottom ? orow : krow };
-        for (int row = lrow + 1; row < urow; ++row) {
-            if (!seats_->getSeat(row, fcol)->piece()) // 空棋子则继续循环
-                continue;
-            else
+        bool killed{ true };
+        for (int row = lrow + 1; row < urow; ++row)
+            if (seats_->getSeat(row, fcol)->piece()) { // 空棋子则继续循环
+                killed = false; // 全部是空棋子，则将帅对面
                 break;
-            return true; // 全部是空棋子，则将帅对面
-        }
+            }
+        if (killed)
+            return true;
     }
     // '获取某方可杀将棋子全部可走的位置
     for (auto& fseat : seats_->getLiveSeats(othColor, BLANKNAME, BLANKCOL, true)) {
@@ -53,9 +54,9 @@ inline SSeat_pair Board::getSeatPair(int frow, int fcol, int trow, int tcol) con
 {
     return make_pair(seats_->getSeat(frow, fcol), seats_->getSeat(trow, tcol));
 }
- 
+
 SSeat_pair Board::getSeatPair(int frowcol, int trowcol) const // 内联不成功
-{ 
+{
     return make_pair(seats_->getSeat(frowcol), seats_->getSeat(trowcol));
 }
 
@@ -402,5 +403,4 @@ const wstring testBoard()
     }
     return wos.str();
 }
- 
 }
